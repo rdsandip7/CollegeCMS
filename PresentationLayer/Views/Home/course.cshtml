@@ -1,0 +1,384 @@
+﻿@{
+    ViewBag.Title = "course";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    <!-- BOOTSTRAP STYLES-->
+    <link href="~/assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="~/assets/css/home.css" rel="stylesheet" />
+    <!-- Theme color -->
+    <link id="switcher" href="~/assets/css/theme-color/default-theme.css" rel="stylesheet">
+    <!-- Slick slider -->
+
+    <link rel="stylesheet" type="text/css" href="~/assets/css/slick.css"> 
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+
+</head>
+<body>
+    <div class="wrapper">
+         <div>
+                @Html.Partial("~/Views/Shared/header.cshtml")
+                
+            </div>
+
+
+          <!-- Start latest course section -->
+          <section id="mu-latest-courses">
+            <div class="container">
+              <div class="row">
+                <div class="col-lg-12 col-md-12">
+                  <div class="mu-latest-courses-area">
+                    <!-- Start Title -->
+                    <div class="mu-title">
+                      <h2>Latest Courses</h2>
+                      <p>There is a huge number of resources which includes the physical infrastructures as well as the employees. The number of students it admits each year is also hug. Here we provide huge range of Courses</p>
+                    </div>
+                    <!-- End Title -->
+                    <!-- Start latest course content -->
+                    <div id="mu-latest-course-slide" class="mu-latest-courses-content">
+                      <div class="col-lg-4 col-md-4 col-xs-12">
+                        <div class="mu-latest-course-single">
+                          <figure class="mu-latest-course-img">
+                            <a href="#"><img src="~/assets/img/courses/1.jpg" alt="img"></a>
+                            <figcaption class="mu-latest-course-imgcaption">
+                              <a href="#">Computer Engineering </a>
+                              <span><i class="fa fa-clock-o"></i>4 Years</span>
+                            </figcaption>
+                          </figure>
+                          <div class="mu-latest-course-single-content">
+                            <p>Computer engineering is a discipline that integrates several fields of electrical engineering and computer science required to develop computer hardware and software.</p>
+                            <div class="mu-latest-course-single-contbottom">
+                              <a class="mu-course-details" href="#">Details</a>
+                              <span class="mu-course-price" href="#">$22,138</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-xs-12">
+                        <div class="mu-latest-course-single">
+                          <figure class="mu-latest-course-img">
+                            <a href="#"><img src="~/assets/img/courses/2.jpg" alt="img"></a>
+                            <figcaption class="mu-latest-course-imgcaption">
+                              <a href="#">Architecture & Urban Planning </a>
+                              <span><i class="fa fa-clock-o"></i>4 Years</span>
+                            </figcaption>
+                          </figure>
+                          <div class="mu-latest-course-single-content">
+                            <p>Architectural engineering, also known as building engineering, is the application of engineering principles and technology to building design and construction.</p>
+                            <div class="mu-latest-course-single-contbottom">
+                              <a class="mu-course-details" href="#">Details</a>
+                              <span class="mu-course-price" href="#">$11,000</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-xs-12">
+                        <div class="mu-latest-course-single">
+                          <figure class="mu-latest-course-img">
+                            <a href="#"><img src="~/assets/img/courses/3.jpg" alt="img"></a>
+                            <figcaption class="mu-latest-course-imgcaption">
+                              <a href="#">Game Devlopment </a>
+                              <span><i class="fa fa-clock-o"></i>4 Years</span>
+                            </figcaption>
+                          </figure>
+                          <div class="mu-latest-course-single-content">
+                            <p>Game development is the process of creating a video game. Development is undertaken by a game developer, which may range from one person to a large business.</p>
+                            <div class="mu-latest-course-single-contbottom">
+                              <a class="mu-course-details" href="#">Details</a>
+                              <span class="mu-course-price" href="#">$24,864</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-xs-12">
+                        <div class="mu-latest-course-single">
+                          <figure class="mu-latest-course-img">
+                            <a href="#"><img src="~/assets/img/courses/4.jpg" alt="img"></a>
+                            <figcaption class="mu-latest-course-imgcaption">
+                              <a href="#">Electrical engineering</a>
+                              <span><i class="fa fa-clock-o"></i>4 Years</span>
+                            </figcaption>
+                          </figure>
+                          <div class="mu-latest-course-single-content">
+                            <p>Electrical engineering is a field of engineering that generally deals with the study and application of electricity, electronics, and electromagnetism.</p>
+                            <div class="mu-latest-course-single-contbottom">
+                              <a class="mu-course-details" href="#">Details</a>
+                              <span class="mu-course-price" href="#">$22,203</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-xs-12">
+                        <div class="mu-latest-course-single">
+                          <figure class="mu-latest-course-img">
+                            <a href="#"><img src="~/assets/img/courses/5.jpg" alt="img"></a>
+                            <figcaption class="mu-latest-course-imgcaption">
+                              <a href="#">Biomedical Engineering </a>
+                              <span><i class="fa fa-clock-o"></i>4 Years</span>
+                            </figcaption>
+                          </figure>
+                          <div class="mu-latest-course-single-content">
+                            <p>Biomedical engineering (BME) is the application of engineering principles and design concepts to medicine and biology for healthcare purposes (e.g. diagnostic or therapeutic).</p>
+                            <div class="mu-latest-course-single-contbottom">
+                              <a class="mu-course-details" href="#">Details</a>
+                              <span class="mu-course-price" href="#">$30,698</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-xs-12">
+                        <div class="mu-latest-course-single">
+                          <figure class="mu-latest-course-img">
+                            <a href="#"><img src="~/assets/img/courses/6.jpg" alt="img"></a>
+                            <figcaption class="mu-latest-course-imgcaption">
+                              <a href="#">Mechanical Engineering</a>
+                              <span><i class="fa fa-clock-o"></i>4 Years</span>
+                            </figcaption>
+                          </figure>
+                          <div class="mu-latest-course-single-content">
+                            <p>Mechanical engineering is the discipline that applies the principles of physics, and materials science for the design,manufacturing, and maintenance of mechanical systems</p>
+                            <div class="mu-latest-course-single-contbottom">
+                              <a class="mu-course-details" href="#">Details</a>
+                              <span class="mu-course-price" href="#">$19,860</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-xs-12">
+                        <div class="mu-latest-course-single">
+                          <figure class="mu-latest-course-img">
+                            <a href="#"><img src="~/assets/img/courses/7.jpg" alt="img"></a>
+                            <figcaption class="mu-latest-course-imgcaption">
+                              <a href="#">Civil Engineering </a>
+                              <span><i class="fa fa-clock-o"></i>4 Years</span>
+                            </figcaption>
+                          </figure>
+                          <div class="mu-latest-course-single-content">
+                            <p>Civil engineering is a professional engineering discipline that deals with the design, construction, and maintenance of the physical and naturally built environment, including works like roads, bridges, canals, dams, and buildings.</p>
+                            <div class="mu-latest-course-single-contbottom">
+                              <a class="mu-course-details" href="#">Details</a>
+                              <span class="mu-course-price" href="#">$33,480</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-xs-12">
+                        <div class="mu-latest-course-single">
+                          <figure class="mu-latest-course-img">
+                            <a href="#"><img src="~/assets/img/courses/8.jpg" alt="img"></a>
+                            <figcaption class="mu-latest-course-imgcaption">
+                              <a href="#"> Electronic Engineering </a>
+                              <span><i class="fa fa-clock-o"></i>4 Years</span>
+                            </figcaption>
+                          </figure>
+                          <div class="mu-latest-course-single-content">
+                            <p>Electronics engineering is an electrical engineering discipline which utilizes non-linear and active electrical components to design electronic circuits, devices, microprocessors, microcontrollers and other systems.</p>
+                            <div class="mu-latest-course-single-contbottom">
+                              <a class="mu-course-details" href="#">Details</a>
+                              <span class="mu-course-price" href="#">$44,050</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-xs-12">
+                        <div class="mu-latest-course-single">
+                          <figure class="mu-latest-course-img">
+                            <a href="#"><img src="~/assets/img/courses/9.jpg" alt="img"></a>
+                            <figcaption class="mu-latest-course-imgcaption">
+                              <a href="#">IT</a>
+                              <span><i class="fa fa-clock-o"></i>4 Years</span>
+                            </figcaption>
+                          </figure>
+                          <div class="mu-latest-course-single-content">
+                            <p>Information technology is the application of computers to store, study, retrieve, transmit, and manipulate data, or information, often in the context of a business. IT is subset of information & communications technology</p>
+                            <div class="mu-latest-course-single-contbottom">
+                              <a class="mu-course-details" href="#">Details</a>
+                              <span class="mu-course-price" href="#">$5,750</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- End latest course content -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <!-- End latest course section -->
+
+          <!-- Start our teacher -->
+          <section id="mu-our-teacher">
+            <div class="container">
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="mu-our-teacher-area">
+                    <!-- begain title -->
+                    <div class="mu-title">
+                      <h2>Our Teachers</h2>
+                      <p>Best of the best in a towm with greate expirence of teachings</p>
+                    </div>
+                    <!-- end title -->
+                    <!-- begain our teacher content -->
+                    <div class="mu-our-teacher-content">
+                      <div class="row">
+                        <div class="col-lg-3 col-md-3  col-sm-6">
+                          <div class="mu-our-teacher-single">
+                            <figure class="mu-our-teacher-img">
+                              <img src="~/assets/img/teachers/teacher-01.png" alt="teacher img">
+                              <div class="mu-our-teacher-social">
+                                <a href="#"><span class="fa fa-facebook"></span></a>
+                                <a href="#"><span class="fa fa-twitter"></span></a>
+                                <a href="#"><span class="fa fa-linkedin"></span></a>
+                                <a href="#"><span class="fa fa-google-plus"></span></a>
+                              </div>
+                            </figure>                    
+                            <div class="mu-ourteacher-single-content">
+                              <h4>Rejoy Mistry</h4>
+                              <span>Math Teacher</span>
+                              <p>Beleive Learning is fun and ready to share everything that i have got. Enjoy learning form anywhere at any place</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-6">
+                          <div class="mu-our-teacher-single">
+                            <figure class="mu-our-teacher-img">
+                              <img src="~/assets/img/teachers/teacher-02.png" alt="teacher img">
+                              <div class="mu-our-teacher-social">
+                                <a href="#"><span class="fa fa-facebook"></span></a>
+                                <a href="#"><span class="fa fa-twitter"></span></a>
+                                <a href="#"><span class="fa fa-linkedin"></span></a>
+                                <a href="#"><span class="fa fa-google-plus"></span></a>
+                              </div>
+                            </figure>                    
+                            <div class="mu-ourteacher-single-content">
+                              <h4>Suman Rana</h4>
+                              <span>.NET Teacher</span>
+                              <p>Knowledge should be spread.MORE knowledge you shared more will you gain</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-6">
+                          <div class="mu-our-teacher-single">
+                            <figure class="mu-our-teacher-img">
+                              <img src="~/assets/img/teachers/teacher-03.png" alt="teacher img">
+                              <div class="mu-our-teacher-social">
+                                <a href="#"><span class="fa fa-facebook"></span></a>
+                                <a href="#"><span class="fa fa-twitter"></span></a>
+                                <a href="#"><span class="fa fa-linkedin"></span></a>
+                                <a href="#"><span class="fa fa-google-plus"></span></a>
+                              </div>
+                            </figure>                    
+                            <div class="mu-ourteacher-single-content">
+                              <h4>Rajan Pant</h4>
+                              <span>IT coordinator</span>
+                              <p>Every student have potential increase your potential by learning with experts.</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-6">
+                          <div class="mu-our-teacher-single">
+                            <figure class="mu-our-teacher-img">
+                              <img src="~/assets/img/teachers/teacher-04.png" alt="teacher img">
+                              <div class="mu-our-teacher-social">
+                                <a href="#"><span class="fa fa-facebook"></span></a>
+                                <a href="#"><span class="fa fa-twitter"></span></a>
+                                <a href="#"><span class="fa fa-linkedin"></span></a>
+                                <a href="#"><span class="fa fa-google-plus"></span></a>
+                              </div>
+                            </figure>                    
+                            <div class="mu-ourteacher-single-content">
+                              <h4>Kamal Dhakal</h4>
+                              <span>SAD Teacher</span>
+                              <p>Student should be treat as friend so the knowledge is shared in both ways.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div> 
+                    <!-- End our teacher content -->           
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <!-- End our teacher -->
+ 
+
+
+
+
+         <div>
+                @Html.Partial("~/Views/Shared/footer.cshtml")
+                
+            </div>
+    </div>
+
+    <script>
+        /* ----------------------------------------------------------- */
+        /*  LATEST COURSE SLIDER (SLICK SLIDER)
+        /* ----------------------------------------------------------- */
+
+        jQuery('#mu-latest-course-slide').slick({
+            dots: true,
+            arrows: false,
+            infinite: true,
+            speed: 300,
+            slidesToShow: 3,
+            slidesToScroll: 3,
+            autoplay: true,
+            autoplaySpeed: 2500,
+            responsive: [
+              {
+                  breakpoint: 1024,
+                  settings: {
+                      slidesToShow: 3,
+                      slidesToScroll: 3,
+                      infinite: true,
+                      dots: true
+                  }
+              },
+              {
+                  breakpoint: 600,
+                  settings: {
+                      slidesToShow: 2,
+                      slidesToScroll: 2
+                  }
+              },
+              {
+                  breakpoint: 480,
+                  settings: {
+                      slidesToShow: 1,
+                      slidesToScroll: 1
+                  }
+              }
+              // You can unslick at a given breakpoint now by adding:
+              // settings: "unslick"
+              // instead of a settings object
+            ]
+        });
+    </script>
+    
+     <!-- Slick slider -->
+  <script type="text/javascript" src="~/assets/js/slick.js"></script>
+  <!-- jQuery library -->
+  <script src="~/assets/js/jquery.min.js"></script>  
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="~/assets/js/bootstrap.js"></script>   
+ 
+  <!-- Counter -->
+  <script type="text/javascript" src="~/assets/js/waypoints.js"></script>
+  <script type="text/javascript" src="~/assets/js/jquery.counterup.js"></script>  
+
+</body>
+</html>

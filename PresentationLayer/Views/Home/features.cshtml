@@ -1,0 +1,126 @@
+﻿@{
+    ViewBag.Title = "features";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Features</title>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    <!-- BOOTSTRAP STYLES-->
+    <link href="~/assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="~/assets/css/home.css" rel="stylesheet" />
+    <!-- Theme color -->
+    <link id="switcher" href="~/assets/css/theme-color/default-theme.css" rel="stylesheet">
+    <!-- Slick slider -->
+    <link rel="stylesheet" type="text/css" href="~/assets/css/slick.css"> 
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+
+</head>
+<body>
+    <div class="wrapper">
+         <div>
+                @Html.Partial("~/Views/Shared/header.cshtml")
+                
+            </div>
+         <!-- Start features section -->
+          <section id="mu-features">
+            <div class="container">
+              <div class="row">
+                <div class="col-lg-12 col-md-12">
+                  <div class="mu-features-area">
+                    <!-- Start Title -->
+                    <div class="mu-title">
+                      <h2>Our Features</h2>
+                      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Distinctio ipsa ea maxime mollitia, vitae voluptates, quod at, saepe reprehenderit totam aliquam architecto fugiat sunt animi!</p>
+                    </div>
+                    <!-- End Title -->
+                    <!-- Start features content -->
+                    <div class="mu-features-content">
+                      <div class="row">
+                        <div class="col-lg-4 col-md-4  col-sm-6">
+                          <div class="mu-single-feature">
+                            <span class="fa fa-book"></span>
+                            <h4>Professional Courses</h4>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus non dolorem excepturi libero itaque sint labore similique maxime natus eum.</p>
+                            <a href="#">Read More</a>
+                          </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6">
+                          <div class="mu-single-feature">
+                            <span class="fa fa-users"></span>
+                            <h4>Expert Teachers</h4>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus non dolorem excepturi libero itaque sint labore similique maxime natus eum.</p>
+                            <a href="#">Read More</a>
+                          </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6">
+                          <div class="mu-single-feature">
+                            <span class="fa fa-laptop"></span>
+                            <h4>Online Learning</h4>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus non dolorem excepturi libero itaque sint labore similique maxime natus eum.</p>
+                            <a href="#">Read More</a>
+                          </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6">
+                          <div class="mu-single-feature">
+                            <span class="fa fa-microphone"></span>
+                            <h4>Audio Lessons</h4>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus non dolorem excepturi libero itaque sint labore similique maxime natus eum.</p>
+                            <a href="#">Read More</a>
+                          </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6">
+                          <div class="mu-single-feature">
+                            <span class="fa fa-film"></span>
+                            <h4>Video Lessons</h4>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus non dolorem excepturi libero itaque sint labore similique maxime natus eum.</p>
+                            <a href="#">Read More</a>
+                          </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6">
+                          <div class="mu-single-feature">
+                            <span class="fa fa-certificate"></span>
+                            <h4>Professional Certificate</h4>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus non dolorem excepturi libero itaque sint labore similique maxime natus eum.</p>
+                            <a href="#">Read More</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- End features content -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <!-- End features section -->
+
+
+
+
+
+
+
+         <div>
+                @Html.Partial("~/Views/Shared/footer.cshtml")
+                
+            </div>
+    </div>
+      <!-- Slick slider -->
+  <script type="text/javascript" src="~/assets/js/slick.js"></script>
+  <!-- jQuery library -->
+  <script src="~/assets/js/jquery.min.js"></script>  
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="~/assets/js/bootstrap.js"></script>   
+
+  <!-- Counter -->
+  <script type="text/javascript" src="~/assets/js/waypoints.js"></script>
+  <script type="text/javascript" src="~/assets/js/jquery.counterup.js"></script>  
+</body>
+</html>

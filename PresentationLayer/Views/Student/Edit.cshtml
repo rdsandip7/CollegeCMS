@@ -1,0 +1,89 @@
+﻿@model PresentationLayer.Models.StudentViewModel
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Edit</h2>
+    <!-- BOOTSTRAP STYLES-->
+    <link href="~/assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="~/assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+<link href="~/assets/css/registration.css" rel="stylesheet" />
+    <div id="wrapper">
+     <div>
+       @Html.Partial("~/Views/Shared/navigator.cshtml")                
+     </div>
+     <div id="page-wrapper">
+            <div id="page-inner">
+@using (Html.BeginForm("UpdateStudent", "Student", FormMethod.Post))
+{
+
+        @Html.HiddenFor(x=>x.StudentId)
+        
+            @Html.LabelFor(x=> x.FirstName)
+            @Html.EditorFor(x=> x.FirstName)
+        
+            @Html.LabelFor(x=> x.MiddleName)
+            @Html.EditorFor(x=> x.MiddleName)
+        
+            @Html.LabelFor(x=> x.LastName)
+            @Html.EditorFor(x=> x.LastName)
+        
+            @Html.LabelFor(x=> x.Level)
+            @Html.EditorFor(x=> x.Level)
+        
+            @Html.LabelFor(x=> x.Address)
+            @Html.EditorFor(x=> x.Address)
+       
+            @Html.LabelFor(x=> x.Department)
+            @Html.EditorFor(x=> x.Department)
+        
+            @Html.LabelFor(x=> x.Gender)
+            @Html.EditorFor(x=> x.Gender)
+        
+            @Html.LabelFor(x=> x.Contact)
+            @Html.EditorFor(x=> x.Contact)
+        
+            @Html.LabelFor(x=> x.GuardianName)
+            @Html.EditorFor(x=> x.GuardianName)
+        
+            @Html.LabelFor(x=> x.GuardianContact)
+            @Html.EditorFor(x=> x.GuardianContact)
+        
+            @Html.LabelFor(x=> x.GuardianRelationship)
+            @Html.EditorFor(x=> x.GuardianRelationship)
+        
+            @Html.LabelFor(x=> x.Email)
+            @Html.EditorFor(x=> x.Email)
+        
+          
+        
+            @Html.LabelFor(x=> x.CitizenshipNumber)
+            @Html.EditorFor(x=> x.CitizenshipNumber)
+        
+            @Html.LabelFor(x=> x.DateOfBirth)
+            @Html.EditorFor(x=> x.DateOfBirth)
+        
+            @Html.LabelFor(x=> x.AdmissionDate)
+            @Html.EditorFor(x=> x.AdmissionDate)
+       
+                <button type="submit">Update Student</button>
+                   
+}
+                </div>
+         </div>
+        </div>
+
+<!-- JQUERY SCRIPTS -->
+    <script src="~/assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="~/assets/js/bootstrap.min.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="~/assets/js/jquery.metisMenu.js"></script>
+    <!-- CUSTOM SCRIPTS -->
+    <script src="~/assets/js/custom.js"></script>
+

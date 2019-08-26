@@ -1,0 +1,48 @@
+﻿@model PresentationLayer.Models.LevelViewModel
+@{
+    ViewBag.Title = "SaveLevel";
+    }
+
+    <!-- BOOTSTRAP STYLES-->
+    <link href="~/assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="~/assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+<link href="~/assets/css/registration.css" rel="stylesheet" />
+    <div id="wrapper">
+     <div>
+       @Html.Partial("~/Views/Shared/navigator.cshtml")                
+     </div>
+     <div id="page-wrapper">
+            <div id="page-inner">
+<table>
+    <tbody>
+        <th><h2>Following Level Information Has Been Saved</h2></th>
+        <tr>
+            <td>@Html.LabelFor(x => x.Year) :</td>
+            <td>@Model.Year</td>
+        </tr>
+        <tr>
+            <td>@Html.LabelFor(x => x.Semester) :</td>
+            <td>@Model.Semester</td>
+        </tr>
+        <tr>
+            <td>@Html.LabelFor(x => x.Description) :</td>
+            <td>@Model.Description</td>
+        </tr>
+    </tbody>
+</table>
+                </div>
+         </div>
+        </div>
+<!-- JQUERY SCRIPTS -->
+    <script src="~/assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="~/assets/js/bootstrap.min.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="~/assets/js/jquery.metisMenu.js"></script>
+    <!-- CUSTOM SCRIPTS -->
+    <script src="~/assets/js/custom.js"></script>

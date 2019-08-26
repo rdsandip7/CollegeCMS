@@ -1,0 +1,62 @@
+﻿@model PresentationLayer.Models.CourseViewModel
+@{
+    ViewBag.Title = "Edit";
+}
+<!-- BOOTSTRAP STYLES-->
+    <link href="~/assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="~/assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+<link href="~/assets/css/registration.css" rel="stylesheet" />
+    <div id="wrapper">
+         <div>
+            @Html.Partial("~/Views/Shared/navigator.cshtml")                
+          </div>
+         <div id="page-wrapper">
+            <div id="page-inner">
+               
+                @using (Html.BeginForm("UpdateCourse", "Course", FormMethod.Post))
+                { 
+    
+                    @Html.HiddenFor(x=>x.CourseId)    
+            <div class="form-group">
+                    @Html.LabelFor(x=> x.CourseName)
+                    @Html.TextBoxFor(x=>x.CourseName)
+            </div>
+             <div class="form-group">
+                    @Html.LabelFor(x=> x.Department)
+                    @Html.TextBoxFor(x=> x.Department)
+            </div>
+              <div class="form-group">
+                    @Html.LabelFor(x=> x.Level)
+                    @Html.TextBoxFor(x=> x.Level)
+                </div>
+            <div class="form-group">
+                    @Html.LabelFor(x=> x.Description)
+                    @Html.TextBoxFor(x=> x.Description)
+            </div>
+               <div class="form-group">
+                    @Html.LabelFor(x=> x.Duration)
+                    @Html.EditorFor(x=> x.Duration)
+            </div>
+               <div class="form-group">
+                    @Html.LabelFor(x=> x.Credit)
+                    @Html.TextBoxFor(x=> x.Credit)
+           </div>
+                   <button type="submit">Edit Course</button>
+               
+                }
+            </div>
+        </div>
+    </div>
+<!-- JQUERY SCRIPTS -->
+    <script src="~/assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="~/assets/js/bootstrap.min.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="~/assets/js/jquery.metisMenu.js"></script>
+    <!-- CUSTOM SCRIPTS -->
+    <script src="~/assets/js/custom.js"></script>

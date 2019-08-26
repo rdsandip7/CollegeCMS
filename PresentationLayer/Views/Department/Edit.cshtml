@@ -1,0 +1,51 @@
+﻿@model PresentationLayer.Models.DepartmentViewModel
+@{
+    ViewBag.Title = "Edit";
+}
+    <!-- BOOTSTRAP STYLES-->
+    <link href="~/assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="~/assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+<link href="~/assets/css/registration.css" rel="stylesheet" />
+    <div id="wrapper">
+     <div>
+       @Html.Partial("~/Views/Shared/navigator.cshtml")                
+     </div>
+     <div id="page-wrapper">
+            <div id="page-inner">
+<h2>Edit</h2>
+@using (Html.BeginForm("UpdateDepartment", "Department", FormMethod.Post))
+{
+   
+            @Html.HiddenFor(x=>x.DeptId)
+            
+               @Html.LabelFor(x=> x.DepartmentName)
+               @Html.TextBoxFor(x=> x.DepartmentName)
+            
+               @Html.LabelFor(x=> x.Description)
+               @Html.TextBoxFor(x=> x.Description)
+            
+               @Html.LabelFor(x=> x.EstablishedDate)
+               @Html.TextBoxFor(x=> x.EstablishedDate)
+            
+               @Html.LabelFor(x=> x.DepartmentHead)
+               @Html.TextBoxFor(x=> x.DepartmentHead)
+           
+                    <button type="submit">Update Department</button>
+               
+}
+                </div>
+         </div>
+        </div>
+<!-- JQUERY SCRIPTS -->
+    <script src="~/assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="~/assets/js/bootstrap.min.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="~/assets/js/jquery.metisMenu.js"></script>
+    <!-- CUSTOM SCRIPTS -->
+    <script src="~/assets/js/custom.js"></script>

@@ -1,0 +1,233 @@
+﻿<!DOCTYPE html>
+@{
+    ViewBag.Title = "Home";
+}
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    <!-- BOOTSTRAP STYLES-->
+    <link href="~/assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="~/assets/css/home.css" rel="stylesheet" />
+    <!-- Slick slider -->
+    <link rel="stylesheet" type="text/css" href="~/assets/css/slick.css"> 
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+
+</head>
+<body>
+    <div id="wrapper">
+         <div>
+                @Html.Partial("~/Views/Shared/header.cshtml")
+                
+            </div>
+          <!-- Start Slider -->
+              <section id="mu-slider">
+                <!-- Start single slider item -->
+                <div class="mu-slider-single">
+                  <div class="mu-slider-img">
+                    <figure>
+                      <img src="assets/img/slider/1.jpg" alt="img">
+                    </figure>
+                  </div>
+                  <div class="mu-slider-content">
+                    <h4>Welcome To Mtech College</h4>
+                    <span></span>
+                    <h2>We Will Help You To Learn</h2>
+                    <p>“Mtech College” is one of the renowned colleges in Kathmandu Valley. It was established in 2000 A.D. and has successfully completed its 15 years of journey.</p>
+                    <a href="#" class="mu-read-more-btn">Read More</a>
+                  </div>
+                </div>
+                <!-- Start single slider item -->
+                <!-- Start single slider item -->
+                <div class="mu-slider-single">
+                  <div class="mu-slider-img">
+                    <figure>
+                      <img src="assets/img/slider/2.jpg" alt="img">
+                    </figure>
+                  </div>
+                  <div class="mu-slider-content">
+                    <h4>Premiumu Quality Teacher</h4>
+                    <span></span>
+                    <h2>Best Education Team Ever</h2>
+                    <p>We provide great Education with expert teaching staff. We are proud of having best teaching team in a town </p>
+                    <a href="#" class="mu-read-more-btn">Read More</a>
+                  </div>
+                </div>
+                <!-- Start single slider item -->
+                <!-- Start single slider item -->
+                <div class="mu-slider-single">
+                  <div class="mu-slider-img">
+                    <figure>
+                      <img src="assets/img/slider/3.jpg" alt="img">
+                    </figure>
+                  </div>
+                  <div class="mu-slider-content">
+                    <h4>Exclusivly For Education</h4>
+                    <span></span>
+                    <h2>Education For Everyone</h2>
+                    <p>Provide quality education for everyone. We have greate range of scholarship for deserving student. We think every one deserve a quality Education</p>
+                    <a href="#" class="mu-read-more-btn">Read More</a>
+                  </div>
+                </div>
+                <!-- Start single slider item -->    
+              </section>
+              <!-- End Slider -->
+              <!-- Start service  -->
+              <section id="mu-service">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-lg-12 col-md-12">
+                      <div class="mu-service-area">
+                        <!-- Start single service -->
+                        <div class="mu-service-single">
+                          <span class="fa fa-book"></span>
+                          <h3>Learn Online</h3>
+                          <p>For learning you should not have to dress up and visit college. We believe education can be gain from anywhere and everywhere</p>
+                        </div>
+                        <!-- Start single service -->
+                        <!-- Start single service -->
+                        <div class="mu-service-single">
+                          <span class="fa fa-users"></span>
+                          <h3>Expert Teachers</h3>
+                          <p>We have expert teacher that are best on their faculty. We are leading college in case of expert teachers</p>
+                        </div>
+                        <!-- Start single service -->
+                        <!-- Start single service -->
+                        <div class="mu-service-single">
+                          <span class="fa fa-table"></span>
+                          <h3>Best Classrooms</h3>
+                          <p>For getting better education, we have well facilated classroom. with great surrounding and sound place</p>
+                        </div>
+                        <!-- Start single service -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- End service  -->
+
+              <!-- Start about us -->
+             <section id="mu-about-us">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="mu-about-us-area">           
+                        <div class="row">
+                            <div class="mu-about-us-left">
+                              <!-- Start Title -->
+                              <div class="mu-title">
+                                <h2>About Us</h2>              
+                              </div>
+                              <!-- End Title -->
+                              <p>“Mtech College” is one of the renowned colleges in Kathmandu Valley. 
+                                  It was established in 2000 A.D. and has successfully completed its 15 years of journey. 
+                                  It has been providing quality education and it can be seen with the efforts of the students they make in their projects. 
+                                  There are four different courses provided by the college. 
+                                  Civil Engineering, Computer Engineering and Electrical engineering are the courses for the students who studied Science in the intermediate level. Similarly, BSC. IT is the course for those who are enthusiasts of Computer Technologies despite of studying the course other than Science in their intermediate level. 
+
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+             </section>
+              <!-- End about us -->
+
+              <!-- Start about us counter -->
+              <section id="mu-abtus-counter">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="mu-abtus-counter-area">
+                        <div class="row">
+                          <!-- Start counter item -->
+                          <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="mu-abtus-counter-single">
+                              <span class="fa fa-book"></span>
+                              <h4 class="counter">568</h4>
+                              <p>Subjects</p>
+                            </div>
+                          </div>
+                          <!-- End counter item -->
+                          <!-- Start counter item -->
+                          <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="mu-abtus-counter-single">
+                              <span class="fa fa-users"></span>
+                              <h4 class="counter">3500</h4>
+                              <p>Students</p>
+                            </div>
+                          </div>
+                          <!-- End counter item -->
+                          <!-- Start counter item -->
+                          <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="mu-abtus-counter-single">
+                              <span class="fa fa-flask"></span>
+                              <h4 class="counter">65</h4>
+                              <p>Modern Lab</p>
+                            </div>
+                          </div>
+                          <!-- End counter item -->
+                          <!-- Start counter item -->
+                          <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="mu-abtus-counter-single no-border">
+                              <span class="fa fa-user-secret"></span>
+                              <h4 class="counter">250</h4>
+                              <p>Teachers</p>
+                            </div>
+                          </div>
+                          <!-- End counter item -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- End about us counter -->
+
+        <div>
+                @Html.Partial("~/Views/Shared/footer.cshtml")
+                
+            </div>
+    </div>
+
+    <script>
+        jQuery('#mu-slider').slick({
+            dots: false,
+            infinite: true,
+            arrows: true,
+            speed: 500,
+            autoplay: true,
+            cssEase: 'linear'
+        });
+    </script>
+    <script>
+        /* ----------------------------------------------------------- */
+        /*  COUNTER
+        /* ----------------------------------------------------------- */
+
+        jQuery('.counter').counterUp({
+            delay: 10,
+            time: 1000
+        });
+    </script>
+  <!-- jQuery library -->
+  <script src="~/assets/js/jquery.min.js"></script>  
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="~/assets/js/bootstrap.js"></script>   
+  <!-- Slick slider -->
+  <script type="text/javascript" src="~/assets/js/slick.js"></script>
+  <!-- Counter -->
+  <script type="text/javascript" src="~/assets/js/waypoints.js"></script>
+  <script type="text/javascript" src="~/assets/js/jquery.counterup.js"></script> 
+
+  
+</body>
+</html>

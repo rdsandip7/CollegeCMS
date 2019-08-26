@@ -1,0 +1,75 @@
+﻿<!doctype HTML>
+@model PresentationLayer.Models.UserViewModel
+@{
+    ViewBag.Title = "Register";
+}
+    <!-- BOOTSTRAP STYLES-->
+    <link href="~/assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="~/assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+<link href="~/assets/css/registration.css" rel="stylesheet" />
+    <div id="wrapper">
+     
+     <div id="page-wrapper">
+            <div id="page-inner">
+
+@Scripts.Render("~/bundles/jquery")
+@Scripts.Render("~/bundles/jqueryval")
+<div class="register">
+    @using (Html.BeginForm("SaveUser", "User", FormMethod.Post))
+    { 
+        @Html.ValidationSummary(true, "Registration Failed, field");
+        <h2>Register Now</h2>
+         <div class="form-group">          
+            @Html.LabelFor(x => x.FirstName)
+            @Html.TextBoxFor(x => x.FirstName)
+            @Html.ValidationMessageFor(x => x.FirstName)
+          </div>  
+        <div class="form-group">                 
+            @Html.LabelFor(x => x.MiddleName)
+            @Html.TextBoxFor(x => x.MiddleName)
+            @Html.ValidationMessageFor(x => x.MiddleName)
+          </div>               
+         <div class="form-group">             
+            @Html.LabelFor(x => x.LastName)
+            @Html.TextBoxFor(x => x.LastName)
+            @Html.ValidationMessageFor(x => x.LastName)
+          </div>                  
+          <div class="form-group">             
+            @Html.LabelFor(x => x.Username)
+            @Html.TextBoxFor(x => x.Username)
+            @Html.ValidationMessageFor(x => x.Username)
+          </div>                  
+        <div class="form-group">
+            @Html.LabelFor(x => x.Email)
+            @Html.EditorFor(x => x.Email)
+            @Html.ValidationMessageFor(x => x.Email)
+         </div>
+        <div class="form-group">                                   
+            @Html.LabelFor(x => x.Password)
+            @Html.PasswordFor(x => x.Password)
+            @Html.ValidationMessageFor(x => x.Password)
+          </div> 
+        <div class="form-group">                 
+            @Html.LabelFor(x => x.ConfirmPassword)
+            @Html.PasswordFor(x => x.ConfirmPassword)
+            @Html.ValidationMessageFor(x => x.ConfirmPassword)
+         </div>                
+        <button type="submit" class="button button-block">Register</button>
+    }
+</div>
+                </div>
+         </div>
+        </div>
+    <!-- JQUERY SCRIPTS -->
+    <script src="~/assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="~/assets/js/bootstrap.min.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="~/assets/js/jquery.metisMenu.js"></script>
+    <!-- CUSTOM SCRIPTS -->
+    <script src="~/assets/js/custom.js"></script>
