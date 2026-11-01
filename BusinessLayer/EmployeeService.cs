@@ -1,81 +1,60 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CoreLayer;
 using DataAccessLayer;
 
-namespace BusinessLayer
+namespace BusinessLayer;
+
+public class EmployeeService(EmployeeCRUD employeeTableActions)
 {
-    public class EmployeeService
+    public Task<PagedResult<Employee>> GetEmployeesAsync(ListQuery query) => employeeTableActions.GetEmployeesAsync(query);
+
+    public Task<Employee?> GetEmployeeByIdAsync(int employeeId) => employeeTableActions.GetEmployeeByIdAsync(employeeId);
+
+    public async Task<OperationResult> SaveEmployeeAsync(Employee employee)
     {
-         EmployeeCRUD employeeTableActions;
-         EmployeePersonalInfoCRUD employeepersonalinfoTableActions;
+        if (await employeeTableActions.EmailExistsAsync(employee.Email))
+            return OperationResult.Fail($"An employee with email {employee.Email} already exists.");
 
-         public EmployeeService()
-        {
-            employeeTableActions = new EmployeeCRUD();
-            employeepersonalinfoTableActions = new EmployeePersonalInfoCRUD();
-        }
+        employee.InsertedDate = DateTime.Now;
+        employee.PersonalInfo.InsertedDate = DateTime.Now;
+        await employeeTableActions.SaveEmployeeAsync(employee);
+        return OperationResult.Success;
+    }
 
-        public void SaveEmployee(Employee employeeData)
-        {
-            employeeTableActions.SaveEmployee(employeeData);
-        }
+    public async Task<OperationResult> UpdateEmployeeAsync(Employee changes)
+    {
+        var employee = await employeeTableActions.GetEmployeeByIdAsync(changes.EmployeeId);
+        if (employee is null)
+            return OperationResult.Fail("Employee not found.");
+        if (await employeeTableActions.EmailExistsAsync(changes.Email, changes.EmployeeId))
+            return OperationResult.Fail($"An employee with email {changes.Email} already exists.");
 
-        
-        public Employee GetEmployeeById(int EmployeeId)
-        {
-            return employeeTableActions.GetEmployeeById(EmployeeId);
-        }
-        public EmployeePersonalInfo GetEmployeePersonalInfoById(int EmployeeId)
-        {
-            return employeepersonalinfoTableActions.GetEmployeePersonalInfoById(EmployeeId);
-        }
+        employee.FirstName = changes.FirstName;
+        employee.MiddleName = changes.MiddleName;
+        employee.LastName = changes.LastName;
+        employee.Email = changes.Email;
+        employee.DepartmentId = changes.DepartmentId;
+        employee.UpdatedDate = DateTime.Now;
 
-        public Employee GetEmployeeByName(string Name)
-        {
-            return employeeTableActions.GetEmployeeByName(Name);
-        }
+        var info = employee.PersonalInfo;
+        info.Gender = changes.PersonalInfo.Gender;
+        info.Position = changes.PersonalInfo.Position;
+        info.Address = changes.PersonalInfo.Address;
+        info.Phone = changes.PersonalInfo.Phone;
+        info.HiredDate = changes.PersonalInfo.HiredDate;
+        info.ResignationDate = changes.PersonalInfo.ResignationDate;
+        info.UpdatedDate = DateTime.Now;
 
-        public Employee GetEmployeeByEmail(string Email)
-        {
-            return employeeTableActions.GetEmployeeByEmail(Email);
-        }
-        public Employee GetEmployeeByFullName(string FirstName, string MiddleName, string LastName)
-        {
-            return employeeTableActions.GetEmployeeByFullName(FirstName,MiddleName,LastName);
-        }
+        await employeeTableActions.UpdateEmployeeAsync(employee);
+        return OperationResult.Success;
+    }
 
-        public void UpdateEmployee(Employee dataTobeUpdated)
-        {
-            employeeTableActions.UpdateEmployee(dataTobeUpdated);
-        }
-       
-        public void RemoveEmployee(Employee dataTobeDeleted)
-        {
-            employeeTableActions.RemoveEmployee(dataTobeDeleted);
-        }
-        public void RemoveEmployeePersonalInfo(EmployeePersonalInfo dataTobeDeleted)
-        {
-            employeepersonalinfoTableActions.RemoveEmployeePersonalInfo(dataTobeDeleted);
-        }
-        public void DeleteEmployee(int EmployeeId)
-        {
-            Employee employeeToBeDeleted = employeeTableActions.GetEmployeeById(EmployeeId);
-            employeeTableActions.RemoveEmployee(employeeToBeDeleted);
-        }
-       
-        public List<Employee> GetAllEmployees(string sortOrder, string searchString)
-        {
-            return employeeTableActions.GetAllEmployees(sortOrder,searchString);
-        }
+    public async Task<OperationResult> DeleteEmployeeAsync(int employeeId)
+    {
+        var employee = await employeeTableActions.GetEmployeeByIdAsync(employeeId);
+        if (employee is null)
+            return OperationResult.Fail("Employee not found.");
 
-        public List<EmployeePersonalInfo> GetAllEmployeesPerssonalInfo(string sortOrder, string searchString)
-        {
-            return employeepersonalinfoTableActions.GetAllEmployeesPerssonalInfo(sortOrder, searchString);
-        }
-
+        await employeeTableActions.RemoveEmployeeAsync(employee);
+        return OperationResult.Success;
     }
 }

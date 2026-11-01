@@ -1,0 +1,20 @@
+@* Page title, search box and "add" button shared by every list page. *@
+@{
+    var search = ViewData["Search"] as string;
+}
+<div class="page-header">
+    <div>
+        <h1 class="h3 mb-1">@ViewData["Title"]</h1>
+        <p class="text-body-secondary mb-0">@ViewData["Subtitle"]</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-lg"></i> @ViewData["CreateLabel"]</a>
+</div>
+<form method="get" class="search-bar mb-3" role="search">
+    <i class="bi bi-search"></i>
+    <input type="search" name="search" value="@search" class="form-control" placeholder="@ViewData["SearchPlaceholder"]" aria-label="Search" />
+    <input type="hidden" name="sort" value="@ViewData["Sort"]" />
+    @if (!string.IsNullOrEmpty(search))
+    {
+        <a class="btn btn-link" asp-action="Index">Clear</a>
+    }
+</form>

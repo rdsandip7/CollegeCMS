@@ -1,40 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using System.Diagnostics;
+using BusinessLayer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PresentationLayer.Models;
 
-namespace PresentationLayer.Controllers
+namespace PresentationLayer.Controllers;
+
+public class HomeController(DashboardService dashboardService) : Controller
 {
-    public class HomeController : Controller
+    public IActionResult Index() =>
+        User.Identity?.IsAuthenticated == true ? RedirectToAction(nameof(Dashboard)) : View();
+
+    public IActionResult About() => View(nameof(Index));
+
+    [Authorize]
+    public async Task<IActionResult> Dashboard()
     {
-        //
-        // GET: /Home/
-
-        public ActionResult Index()
-        {
-            return View();
-        }
-
-        public ActionResult Dashboard()
-        {
-            return View();
-        }
-
-        public ActionResult course()
-        {
-            return View();
-        }
-
-        public ActionResult features()
-        {
-            return View();
-        }
-
-        public ActionResult AboutUs()
-        {
-            return View();
-        }
-
+        var statistics = await dashboardService.GetStatisticsAsync();
+        var departments = await dashboardService.GetDepartmentHeadcountsAsync();
+        return View(new DashboardViewModel(statistics, departments));
     }
+
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error() =>
+        View(new ErrorViewModel(500, Activity.Current?.Id ?? HttpContext.TraceIdentifier));
+
+    [ActionName("StatusCode")]
+    public IActionResult StatusCodePage(int code) =>
+        View("Error", new ErrorViewModel(code, HttpContext.TraceIdentifier));
 }

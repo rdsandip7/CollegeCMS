@@ -1,16 +1,20 @@
-﻿@{
-    Layout = null;
+@model ErrorViewModel
+@{
+    var (title, message) = Model.StatusCode switch
+    {
+        404 => ("Page not found", "The page or record you were looking for doesn't exist."),
+        403 => ("Access denied", "You don't have permission to do that."),
+        _ => ("Something went wrong", "Sorry, an error occurred while processing your request."),
+    };
+    ViewData["Title"] = title;
 }
-
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Error</title>
-</head>
-<body>
-    <h2>
-        Sorry, an error occurred while processing your request.
-    </h2>
-</body>
-</html>
+<div class="empty-state">
+    <div class="display-4 fw-bold text-primary">@Model.StatusCode</div>
+    <h1 class="h3">@title</h1>
+    <p class="text-body-secondary">@message</p>
+    @if (!string.IsNullOrEmpty(Model.RequestId) && Model.StatusCode >= 500)
+    {
+        <p class="small text-body-secondary">Request ID: <code>@Model.RequestId</code></p>
+    }
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Back to home</a>
+</div>

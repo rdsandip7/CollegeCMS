@@ -1,109 +1,62 @@
-﻿using CoreLayer;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using CoreLayer;
+using Microsoft.EntityFrameworkCore;
 
-namespace DataAccessLayer
+namespace DataAccessLayer;
+
+public class LevelCRUD(DataContext dataContext)
 {
-    public class LevelCRUD
+    private static readonly Dictionary<string, Expression<Func<Level, object?>>> SortColumns = new()
     {
-        //Create Level
-        public void SaveLevel(Level level)
+        ["year"] = x => x.Year,
+        ["semester"] = x => x.Semester,
+        ["description"] = x => x.Description,
+    };
+
+    //Create Level
+    public async Task SaveLevelAsync(Level level)
+    {
+        dataContext.Levels.Add(level);
+        await dataContext.SaveChangesAsync();
+    }
+
+    //Read Level
+    public Task<Level?> GetLevelByIdAsync(int levelId) =>
+        dataContext.Levels.FirstOrDefaultAsync(x => x.LevelId == levelId);
+
+    public Task<List<Level>> GetAllLevelsAsync() =>
+        dataContext.Levels.AsNoTracking().OrderBy(x => x.Year).ThenBy(x => x.Semester).ToListAsync();
+
+    public Task<PagedResult<Level>> GetLevelsAsync(ListQuery query)
+    {
+        IQueryable<Level> levels = dataContext.Levels.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Levels.Add(level);
-                dataContext.SaveChanges();
-            }
+            var s = query.Search.Trim().ToLower();
+            levels = levels.Where(x => x.Semester.ToLower().Contains(s)
+                || (x.Description != null && x.Description.ToLower().Contains(s))
+                || x.Year.ToString().Contains(s));
         }
 
-        //Read Level
-        public Level GetLevelById(int levelId)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from level in dataContext.Levels
-                              where level.LevelId == levelId
-                              select level).First();
-                return result;
-            }
-        }
-        public Level GetLevelBySemester(string Semester)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from level in dataContext.Levels
-                              where level.Semester == Semester
-                              select level).First();
-                return result;
-            }
-        }
+        return levels.ApplySort(query, SortColumns).ToPagedResultAsync(query);
+    }
 
-        public List<Level> GetAllLevels(string sortOrder, string searchString)
-        {
-            using (var dataContext = new DataContext())
-            {
-                IEnumerable<Level> Level = (from level in dataContext.Levels select level);
+    public async Task<bool> HasDependentsAsync(int levelId) =>
+        await dataContext.Students.AnyAsync(x => x.LevelId == levelId)
+        || await dataContext.Courses.AnyAsync(x => x.LevelId == levelId);
 
-                if (!string.IsNullOrEmpty(searchString))
-                {
-                    Level = Level.Where(x => x.Semester.ToLower().Contains(searchString.ToLower()) || x.Description.ToLower().Contains(searchString.ToLower()));
+    //Update Level
+    public async Task UpdateLevelAsync(Level level)
+    {
+        dataContext.Levels.Update(level);
+        await dataContext.SaveChangesAsync();
+    }
 
-                }
-                
-                if (!string.IsNullOrEmpty(sortOrder))
-                {
-                    switch (sortOrder)
-                    {
-                        case "year_asc":
-                            Level = Level.OrderBy(x => x.Year).ToList();
-                            break;
-                        case "year_desc":
-                            Level = Level.OrderByDescending(x => x.Year).ToList();
-                            break;
-                        case "semester_asc":
-                            Level = Level.OrderBy(x => x.Semester).ToList();
-                            break;
-                        case "semester_desc":
-                            Level = Level.OrderByDescending(x => x.Semester).ToList();
-                            break;
-                        case "desc_asc":
-                            Level = Level.OrderBy(x => x.Description).ToList();
-                            break;
-                        case "desc_desc":
-                            Level = Level.OrderByDescending(x => x.Description).ToList();
-                            break;
-                    }
-                }
-                else
-                {
-                    Level = Level.ToList();
-                }
-                return Level.ToList();
-            }
-        }
-
-        //Update Level
-        public void UpdateLevel(Level newLevel)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(newLevel).State = EntityState.Modified;
-                dataContext.SaveChanges();
-            }
-        }
-
-        //Delete Level
-        public void RemoveLevel(Level levelToBeDeleted)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(levelToBeDeleted).State = EntityState.Deleted;
-                dataContext.SaveChanges();
-            }
-        }
+    //Delete Level
+    public async Task RemoveLevelAsync(Level level)
+    {
+        dataContext.Levels.Remove(level);
+        await dataContext.SaveChangesAsync();
     }
 }

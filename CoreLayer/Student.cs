@@ -1,25 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace CoreLayer;
 
-namespace CoreLayer
+public class Student
 {
-    public class Student
-    {
-        public string StudentId { get; set; }
-        public int DepartmentId { get; set; }
-        public int LevelId { get; set; }
-        public string FirstName { get; set; } //added later
-        public string MiddleName { get; set; } //added later
-        public string LastName { get; set; } //added later
-        public DateTime? InsertedDate { get; set; }
-        public DateTime? UpdatedDate { get; set; }
+    public string StudentId { get; set; } = string.Empty;
+    public int DepartmentId { get; set; }
+    public int LevelId { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string? MiddleName { get; set; }
+    public string LastName { get; set; } = string.Empty;
+    public DateTime? InsertedDate { get; set; }
+    public DateTime? UpdatedDate { get; set; }
 
-        public virtual Department Department { get; set; }
-        public virtual StudentPersonalInfo StudentPersonalInfo { get; set; }
-        public virtual Level Level { get; set; }
-        public virtual ICollection<Enrollment> Enrollments { get; set; }
-    }
+    public Department? Department { get; set; }
+    public Level? Level { get; set; }
+    public StudentPersonalInfo PersonalInfo { get; set; } = new();
+    public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+
+    public string FullName => string.Join(" ", new[] { FirstName, MiddleName, LastName }.Where(n => !string.IsNullOrWhiteSpace(n)));
 }

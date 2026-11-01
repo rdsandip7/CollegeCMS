@@ -1,125 +1,77 @@
-﻿using CoreLayer;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using CoreLayer;
+using Microsoft.EntityFrameworkCore;
 
-namespace DataAccessLayer
+namespace DataAccessLayer;
+
+public class StudentCRUD(DataContext dataContext)
 {
-    public class StudentCRUD
+    private static readonly Dictionary<string, Expression<Func<Student, object?>>> SortColumns = new()
     {
-        //Create Student
-        public void SaveStudent(Student student)
+        ["id"] = x => x.StudentId,
+        ["name"] = x => x.FirstName,
+        ["department"] = x => x.Department!.DepartmentName,
+        ["level"] = x => x.Level!.Year,
+        ["admission"] = x => x.PersonalInfo.AdmissionDate,
+    };
+
+    //Create Student (the personal info row is saved with it)
+    public async Task SaveStudentAsync(Student student)
+    {
+        dataContext.Students.Add(student);
+        await dataContext.SaveChangesAsync();
+    }
+
+    //Read Student
+    public Task<Student?> GetStudentByIdAsync(string studentId) =>
+        dataContext.Students
+            .Include(x => x.Department)
+            .Include(x => x.Level)
+            .Include(x => x.PersonalInfo)
+            .Include(x => x.Enrollments).ThenInclude(e => e.Course)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.StudentId == studentId);
+
+    /// <summary>Highest existing student id that starts with <paramref name="prefix"/>, e.g. "STU-2026-".</summary>
+    public Task<string?> GetLastStudentIdAsync(string prefix) =>
+        dataContext.Students
+            .Where(x => x.StudentId.StartsWith(prefix))
+            .OrderByDescending(x => x.StudentId)
+            .Select(x => x.StudentId)
+            .FirstOrDefaultAsync();
+
+    public Task<PagedResult<Student>> GetStudentsAsync(ListQuery query)
+    {
+        IQueryable<Student> students = dataContext.Students.AsNoTracking()
+            .Include(x => x.Department)
+            .Include(x => x.Level)
+            .Include(x => x.PersonalInfo);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            using (var dataContext = new DataContext())
-            {
-                var addedStudent = dataContext.Students.Add(student);
-                student.StudentPersonalInfo.StudentId = addedStudent.StudentId;
-                addedStudent.StudentPersonalInfo = dataContext.StudentPersonalInfos.Add(student.StudentPersonalInfo);               
-                dataContext.SaveChanges();
-            }
+            var s = query.Search.Trim().ToLower();
+            students = students.Where(x => x.StudentId.ToLower().Contains(s)
+                || x.FirstName.ToLower().Contains(s)
+                || (x.MiddleName != null && x.MiddleName.ToLower().Contains(s))
+                || x.LastName.ToLower().Contains(s)
+                || x.Department!.DepartmentName.ToLower().Contains(s)
+                || (x.PersonalInfo.Email != null && x.PersonalInfo.Email.ToLower().Contains(s)));
         }
 
-        //Read Student
-        public Student GetStudentById(string StudentId)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from student in dataContext.Students
-                              where student.StudentId == StudentId
-                              select student).First();
-                return result;
-            }
-        }
-        public Student GetStudentByName(string Name)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from student in dataContext.Students
-                              where student.FirstName == Name
-                              select student).First();
-                return result;
-            }
-        }
+        return students.ApplySort(query, SortColumns).ToPagedResultAsync(query);
+    }
 
-        public List<Student> GetAllStudents(string sortOrder, string searchString)
-        {
-            using (var dataContext = new DataContext())
-            {
-                IEnumerable<Student> Student = (from student in dataContext.Students select student);
+    //Update Student
+    public async Task UpdateStudentAsync(Student student)
+    {
+        dataContext.Students.Update(student);
+        await dataContext.SaveChangesAsync();
+    }
 
-                if (!string.IsNullOrEmpty(searchString))
-                {
-                    Student = Student.Where(x => x.FirstName.ToLower().Contains(searchString.ToLower()) || x.MiddleName.ToLower().Contains(searchString.ToLower()) || x.LastName.ToLower().Contains(searchString.ToLower()));
-
-                }
-                
-                if (!string.IsNullOrEmpty(sortOrder))
-                {
-                    switch (sortOrder)
-                    {
-                        case "fname_asc":
-                            Student = Student.OrderBy(x => x.FirstName).ToList();
-                            break;
-                        case "fname_desc":
-                            Student = Student.OrderByDescending(x => x.FirstName).ToList();
-                            break;
-                        case "mname_asc":
-                            Student = Student.OrderBy(x => x.MiddleName).ToList();
-                            break;
-                        case "mname_desc":
-                            Student = Student.OrderByDescending(x => x.MiddleName).ToList();
-                            break;
-                        case "lname_asc":
-                            Student = Student.OrderBy(x => x.LastName).ToList();
-                            break;
-                        case "lname_desc":
-                            Student = Student.OrderByDescending(x => x.LastName).ToList();
-                            break;
-                        case "department_asc":
-                            Student = Student.OrderBy(x => x.Department).ToList();
-                            break;
-                        case "department_dsc":
-                            Student = Student.OrderByDescending(x => x.Department).ToList();
-                            break;
-                        case "level_asc":
-                            Student = Student.OrderBy(x => x.Level).ToList();
-                            break;
-                        case "level_dsc":
-                            Student = Student.OrderByDescending(x => x.Level).ToList();
-                            break;
-                    }
-                }
-                else 
-                {
-                    Student = Student.ToList();
-                }
-                return Student.ToList();
-            }
-        }
-
-        //Update Student
-        public void UpdateStudent(Student newStudent)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(newStudent).State = EntityState.Modified;
-                dataContext.Entry(newStudent.StudentPersonalInfo).State = EntityState.Modified;
-                dataContext.SaveChanges();
-            }
-        }
-
-        //Delete Student
-        public void RemoveStudent(Student studentToBeDeleted)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(studentToBeDeleted).State = EntityState.Deleted;
-                dataContext.Entry(studentToBeDeleted.StudentPersonalInfo).State = EntityState.Deleted;
-                dataContext.SaveChanges();
-            }
-        }
+    //Delete Student (personal info and enrollments are removed by cascade)
+    public async Task RemoveStudentAsync(Student student)
+    {
+        dataContext.Students.Remove(student);
+        await dataContext.SaveChangesAsync();
     }
 }

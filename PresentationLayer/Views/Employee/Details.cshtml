@@ -1,0 +1,54 @@
+@model Employee
+@{
+    ViewData["Title"] = Model.FullName;
+    var info = Model.PersonalInfo;
+}
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3">
+        <span class="avatar avatar-lg">@Model.FirstName[..1]@Model.LastName[..1]</span>
+        <div>
+            <a class="back-link" asp-action="Index"><i class="bi bi-arrow-left"></i> Employees</a>
+            <h1 class="h3 mb-0">@Model.FullName</h1>
+            <div class="text-body-secondary">@info.Position · @Model.Department?.DepartmentName</div>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.EmployeeId"><i class="bi bi-pencil"></i> Edit</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-transparent"><h2 class="h6 mb-0">Contact</h2></div>
+            <dl class="card-body detail-list mb-0">
+                <dt>Email</dt><dd><a href="mailto:@Model.Email">@Model.Email</a></dd>
+                <dt>Phone</dt><dd>@(info.Phone ?? "—")</dd>
+                <dt>Address</dt><dd>@(info.Address ?? "—")</dd>
+                <dt>Gender</dt><dd>@(info.Gender ?? "—")</dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-transparent"><h2 class="h6 mb-0">Employment</h2></div>
+            <dl class="card-body detail-list mb-0">
+                <dt>Department</dt><dd>@Model.Department?.DepartmentName</dd>
+                <dt>Position</dt><dd>@(info.Position ?? "—")</dd>
+                <dt>Hired</dt><dd>@info.HiredDate.ToString("dd MMMM yyyy")</dd>
+                <dt>Status</dt>
+                <dd>
+                    @if (info.ResignationDate is null)
+                    {
+                        <span class="badge rounded-pill bg-success-subtle text-success-emphasis">Active</span>
+                    }
+                    else
+                    {
+                        <span>Left on @info.ResignationDate?.ToString("dd MMMM yyyy")</span>
+                    }
+                </dd>
+                <dt>User account</dt><dd>@(Model.UserId is null ? "Not linked" : "Linked")</dd>
+            </dl>
+        </div>
+    </div>
+</div>

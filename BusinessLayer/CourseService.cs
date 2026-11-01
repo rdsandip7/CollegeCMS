@@ -1,52 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CoreLayer;
 using DataAccessLayer;
 
-namespace BusinessLayer
+namespace BusinessLayer;
+
+public class CourseService(CourseCRUD courseTableActions)
 {
-    public class CourseService
+    public Task<PagedResult<Course>> GetCoursesAsync(ListQuery query) => courseTableActions.GetCoursesAsync(query);
+
+    public Task<List<Course>> GetAllCoursesAsync() => courseTableActions.GetAllCoursesAsync();
+
+    public Task<Course?> GetCourseByIdAsync(int courseId) => courseTableActions.GetCourseByIdAsync(courseId);
+
+    public async Task SaveCourseAsync(Course course)
     {
-        CourseCRUD courseTableActions;
+        course.InsertedDate = DateTime.Now;
+        await courseTableActions.SaveCourseAsync(course);
+    }
 
-        public CourseService()
-        {
-            courseTableActions = new CourseCRUD(); 
-        }
+    public async Task<OperationResult> UpdateCourseAsync(Course changes)
+    {
+        var course = await courseTableActions.GetCourseByIdAsync(changes.CourseId);
+        if (course is null)
+            return OperationResult.Fail("Course not found.");
 
-        public void SaveCourse(Course courseData)
-        {
-            courseTableActions.SaveCourse(courseData);
-        }
-        public Course GetCourseById(int CourseId)
-        {
-            return courseTableActions.GetCourseById(CourseId);
-        }
-        public Course GetCourseByName(string CourseName)
-        {
-            return courseTableActions.GetCourseByName(CourseName);
-        }
-        public void UpdateCourse(Course dataTobeUpdated)
-        {
-            courseTableActions.UpdateCourse(dataTobeUpdated);
-        }
-        public void DeleteCourse(int CourseId)
-        {
-            Course courseToBeDeleted = courseTableActions.GetCourseById(CourseId);
-            courseTableActions.RemoveCourse(courseToBeDeleted);
-        }
-        public void RemoveCourse(Course dataToBeDeleted)
-        {
-            courseTableActions.RemoveCourse(dataToBeDeleted);
-        }
+        course.CourseName = changes.CourseName;
+        course.DepartmentId = changes.DepartmentId;
+        course.LevelId = changes.LevelId;
+        course.Description = changes.Description;
+        course.Credit = changes.Credit;
+        course.Duration = changes.Duration;
+        course.UpdatedDate = DateTime.Now;
+        await courseTableActions.UpdateCourseAsync(course);
+        return OperationResult.Success;
+    }
 
-        public IList<Course> GetAllCourses(string sortOrder, string searchString)
-        {
-            return courseTableActions.GetAllCourses(sortOrder,searchString);
-        }
+    public async Task<OperationResult> DeleteCourseAsync(int courseId)
+    {
+        var course = await courseTableActions.GetCourseByIdAsync(courseId);
+        if (course is null)
+            return OperationResult.Fail("Course not found.");
 
+        await courseTableActions.RemoveCourseAsync(course);
+        return OperationResult.Success;
     }
 }

@@ -1,192 +1,159 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.Entity;
 using CoreLayer;
-using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
-namespace DataAccessLayer
+namespace DataAccessLayer;
+
+public class DataContext(DbContextOptions<DataContext> options) : DbContext(options)
 {
-    public class DataContext : DbContext
+    public DbSet<Department> Departments => Set<Department>();
+    public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<EmployeePersonalInfo> EmployeePersonalInfos => Set<EmployeePersonalInfo>();
+    public DbSet<Student> Students => Set<Student>();
+    public DbSet<StudentPersonalInfo> StudentPersonalInfos => Set<StudentPersonalInfo>();
+    public DbSet<Level> Levels => Set<Level>();
+    public DbSet<Course> Courses => Set<Course>();
+    public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<User> Users => Set<User>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public DataContext() : base("CollegeCMS") { }
+        CreateTableDepartment(modelBuilder);
+        CreateTableEmployee(modelBuilder);
+        CreateTableStudent(modelBuilder);
+        CreateTableLevel(modelBuilder);
+        CreateTableCourse(modelBuilder);
+        CreateTableEnrollment(modelBuilder);
+        CreateTableUser(modelBuilder);
+    }
 
-        public DbSet<Department> Departments { get; set; }
-        public DbSet<Employee> Employees { get; set; }
-        public DbSet<EmployeePersonalInfo> EmployeePersonalInfos { get; set; }
-        public DbSet<Student> Students { get; set; }
-        public DbSet<StudentPersonalInfo> StudentPersonalInfos { get; set; }
-        public DbSet<Level> Levels { get; set; }
-        public DbSet<Course> Courses { get; set; }
-        public DbSet<Enrollment> Enrollments { get; set; }
-        public DbSet<User> Users { get; set; }
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+    private static void CreateTableDepartment(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Department>(e =>
         {
-            CreateTableDepartment(modelBuilder);
-            CreateTableEmployee(modelBuilder);
-            CreateTableEmployeePersonal(modelBuilder);
-            CreateTableStudent(modelBuilder);
-            CreateTableStudentPersonal(modelBuilder);
-            CreateTableLevel(modelBuilder);
-            CreateTableCourse(modelBuilder);
-            CreateTableEnrollment(modelBuilder);
-            CreateTableUser(modelBuilder);
-        }
+            e.ToTable("Departments");
+            e.Property(x => x.DepartmentName).HasMaxLength(100).IsRequired();
+            e.HasIndex(x => x.DepartmentName).IsUnique();
+        });
+    }
 
-        private static void CreateTableDepartment(DbModelBuilder modelBuilder)
+    private static void CreateTableEmployee(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Employee>(e =>
         {
-            modelBuilder.Entity<Department>().ToTable("Departments");
-            modelBuilder.Entity<Department>().HasKey(x => x.DepartmentId);
-            modelBuilder.Entity<Department>().Property(x => x.DepartmentId).HasColumnName("DepartmentId");
-            modelBuilder.Entity<Department>().Property(x => x.DepartmentName).HasColumnName("DepartmentName");
-            modelBuilder.Entity<Department>().Property(x => x.Description).HasColumnName("Description");
-            modelBuilder.Entity<Department>().Property(x => x.EstablishedDate).HasColumnName("EstablishedDate");
-            modelBuilder.Entity<Department>().Property(x => x.DepartmentHead).HasColumnName("DepartmentHead");
-            modelBuilder.Entity<Department>().Property(x => x.InsertedDate).HasColumnName("InsertedDate");
-            modelBuilder.Entity<Department>().Property(x => x.UpdatedDate).HasColumnName("UpdatedDate");
-        }
+            e.ToTable("Employees");
+            e.Property(x => x.Email).HasMaxLength(200).IsRequired();
+            e.HasIndex(x => x.Email).IsUnique();
+            e.Ignore(x => x.FullName);
 
-        private static void CreateTableEmployee(DbModelBuilder modelBuilder)
+            // A department that still has staff cannot be deleted.
+            e.HasOne(x => x.Department)
+             .WithMany(d => d.Employees)
+             .HasForeignKey(x => x.DepartmentId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            // Employee and EmployeePersonal share a primary key (one-to-one).
+            e.HasOne(x => x.PersonalInfo)
+             .WithOne(p => p.Employee)
+             .HasForeignKey<EmployeePersonalInfo>(p => p.EmployeeId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EmployeePersonalInfo>(e =>
         {
-            modelBuilder.Entity<Employee>().ToTable("Employees");
-            modelBuilder.Entity<Employee>().HasKey(x => x.EmployeeId);
-            modelBuilder.Entity<Employee>().Property(x => x.EmployeeId).HasColumnName("EmployeeId");
-            modelBuilder.Entity<Employee>().Property(x => x.UserId).HasColumnName("UserId");
-            modelBuilder.Entity<Employee>().Property(x => x.DepartmentId).HasColumnName("DepartmentId");
-            modelBuilder.Entity<Employee>().Property(x => x.Email).HasColumnName("Email");
-            modelBuilder.Entity<Employee>().Property(x => x.FirstName).HasColumnName("FirstName");
-            modelBuilder.Entity<Employee>().Property(x => x.MiddleName).HasColumnName("MiddleName");
-            modelBuilder.Entity<Employee>().Property(x => x.LastName).HasColumnName("LastName");
-            modelBuilder.Entity<Employee>().Property(x => x.InsertedDate).HasColumnName("InsertedDate");
-            modelBuilder.Entity<Employee>().Property(x => x.UpdatedDate).HasColumnName("UpdatedDate");
+            e.ToTable("EmployeePersonal");
+            e.HasKey(x => x.EmployeeId);
+            e.Property(x => x.EmployeeId).ValueGeneratedNever();
+        });
+    }
 
-            modelBuilder.Entity<Employee>()
-             .HasRequired<Department>(s => s.Department)
-             .WithMany(s => s.Employees)
-             .HasForeignKey(s => s.DepartmentId);
-        }
-        private static void CreateTableEmployeePersonal(DbModelBuilder modelBuilder)
+    private static void CreateTableStudent(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Student>(e =>
         {
-            modelBuilder.Entity<EmployeePersonalInfo>().ToTable("EmployeePersonal");
-            modelBuilder.Entity<EmployeePersonalInfo>().HasKey(x => x.EmployeeId);
-            modelBuilder.Entity<EmployeePersonalInfo>().Property(x => x.EmployeeId).HasColumnName("EmployeeId").HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
-            modelBuilder.Entity<EmployeePersonalInfo>().Property(x => x.Phone).HasColumnName("Phone");
-            modelBuilder.Entity<EmployeePersonalInfo>().Property(x => x.Address).HasColumnName("Address");
-            modelBuilder.Entity<EmployeePersonalInfo>().Property(x => x.Position).HasColumnName("Position");            
-            modelBuilder.Entity<EmployeePersonalInfo>().Property(x => x.Gender).HasColumnName("Gender");
-            modelBuilder.Entity<EmployeePersonalInfo>().Property(x => x.HiredDate).HasColumnName("HiredDate");
-            modelBuilder.Entity<EmployeePersonalInfo>().Property(x => x.ResignationDate).HasColumnName("ResignationDate");
-            modelBuilder.Entity<EmployeePersonalInfo>().Property(x => x.InsertedDate).HasColumnName("InsertedDate");
-            modelBuilder.Entity<EmployeePersonalInfo>().Property(x => x.UpdatedDate).HasColumnName("UpdatedDate");
+            e.ToTable("Students");
+            e.HasKey(x => x.StudentId);
+            e.Property(x => x.StudentId).HasMaxLength(20).ValueGeneratedNever();
+            e.Ignore(x => x.FullName);
 
-            modelBuilder.Entity<Employee>().HasRequired(x => x.EmployeePersonalInfo).WithRequiredPrincipal(z => z.Employee);
-        }
+            e.HasOne(x => x.Department)
+             .WithMany(d => d.Students)
+             .HasForeignKey(x => x.DepartmentId)
+             .OnDelete(DeleteBehavior.Restrict);
 
-        private static void CreateTableStudent(DbModelBuilder modelBuilder)
+            e.HasOne(x => x.Level)
+             .WithMany(l => l.Students)
+             .HasForeignKey(x => x.LevelId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(x => x.PersonalInfo)
+             .WithOne(p => p.Student)
+             .HasForeignKey<StudentPersonalInfo>(p => p.StudentId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<StudentPersonalInfo>(e =>
         {
-            modelBuilder.Entity<Student>().ToTable("Students");
-            modelBuilder.Entity<Student>().HasKey(x => x.StudentId);
-            modelBuilder.Entity<Student>().Property(x => x.StudentId).HasColumnName("StudentId");
-            modelBuilder.Entity<Student>().Property(x => x.DepartmentId).HasColumnName("DepartmentId");
-            modelBuilder.Entity<Student>().Property(x => x.LevelId).HasColumnName("LevelId");
-            modelBuilder.Entity<Student>().Property(x => x.FirstName).HasColumnName("FirstName");
-            modelBuilder.Entity<Student>().Property(x => x.MiddleName).HasColumnName("MiddleName");
-            modelBuilder.Entity<Student>().Property(x => x.LastName).HasColumnName("LastName");
-            modelBuilder.Entity<Student>().Property(x => x.InsertedDate).HasColumnName("InsertedDate");
-            modelBuilder.Entity<Student>().Property(x => x.UpdatedDate).HasColumnName("UpdatedDate");
+            e.ToTable("StudentPersonalInfo");
+            e.HasKey(x => x.StudentId);
+        });
+    }
 
-            modelBuilder.Entity<Student>()
-              .HasRequired<Department>(s => s.Department)
-              .WithMany(s => s.Students)
-              .HasForeignKey(s => s.DepartmentId);
-
-            modelBuilder.Entity<Student>()
-             .HasRequired<Level>(s => s.Level)
-             .WithMany(s => s.Students)
-             .HasForeignKey(s => s.LevelId);
-        }
-        private static void CreateTableStudentPersonal(DbModelBuilder modelBuilder)
+    private static void CreateTableLevel(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Level>(e =>
         {
-            modelBuilder.Entity<StudentPersonalInfo>().ToTable("StudentPersonalInfo");
-            modelBuilder.Entity<StudentPersonalInfo>().HasKey(x => x.StudentId);
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.StudentId).HasColumnName("StudentId").HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.ContactNumber).HasColumnName("ContactNumber");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.Address).HasColumnName("Address");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.GuardianName).HasColumnName("GuardianName");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.GuardianContactNumber).HasColumnName("GuardianContactNumber");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.Gender).HasColumnName("Gender");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.Email).HasColumnName("Email");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.CitizenshipNumber).HasColumnName("CitizenshipNumber");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.GuardianRelationship).HasColumnName("GuardianRelationship");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.DateOfBirth).HasColumnName("DateOfBirth");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.AdmissionDate).HasColumnName("AdmissionDate");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.InsertedDate).HasColumnName("InsertedDate");
-            modelBuilder.Entity<StudentPersonalInfo>().Property(x => x.UpdatedDate).HasColumnName("UpdatedDate");
+            e.ToTable("Levels");
+            e.Ignore(x => x.DisplayName);
+            e.Property(x => x.Semester).HasMaxLength(50).IsRequired();
+        });
+    }
 
-            modelBuilder.Entity<Student>().HasRequired(x => x.StudentPersonalInfo).WithRequiredPrincipal(z => z.Student);
-        }
-
-        private static void CreateTableLevel(DbModelBuilder modelBuilder)
+    private static void CreateTableCourse(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Course>(e =>
         {
-            modelBuilder.Entity<Level>().ToTable("Levels");
-            modelBuilder.Entity<Level>().HasKey(x => x.LevelId);
-            modelBuilder.Entity<Level>().Property(x => x.LevelId).HasColumnName("LevelId");
-            modelBuilder.Entity<Level>().Property(x => x.Year).HasColumnName("Year");
-            modelBuilder.Entity<Level>().Property(x => x.Semester).HasColumnName("Semester");
-            modelBuilder.Entity<Level>().Property(x => x.Description).HasColumnName("Description");
-            modelBuilder.Entity<Level>().Property(x => x.InsertedDate).HasColumnName("InsertedDate");
-            modelBuilder.Entity<Level>().Property(x => x.UpdatedDate).HasColumnName("UpdatedDate");
+            e.ToTable("Courses");
+            e.Property(x => x.CourseName).HasMaxLength(150).IsRequired();
 
-        }
-        private static void CreateTableCourse(DbModelBuilder modelBuilder)
+            e.HasOne(x => x.Department)
+             .WithMany(d => d.Courses)
+             .HasForeignKey(x => x.DepartmentId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(x => x.Level)
+             .WithMany(l => l.Courses)
+             .HasForeignKey(x => x.LevelId)
+             .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void CreateTableEnrollment(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Enrollment>(e =>
         {
-            modelBuilder.Entity<Course>().ToTable("Courses");
-            modelBuilder.Entity<Course>().HasKey(x => x.CourseId);
-            modelBuilder.Entity<Course>().Property(x => x.CourseId).HasColumnName("CourseId");
-            modelBuilder.Entity<Course>().Property(x => x.DepartmentId).HasColumnName("DepartmentId");
-            modelBuilder.Entity<Course>().Property(x => x.LevelId).HasColumnName("LevelId");
-            modelBuilder.Entity<Course>().Property(x => x.CourseName).HasColumnName("CourseName");
-            modelBuilder.Entity<Course>().Property(x => x.Description).HasColumnName("Description");
-            modelBuilder.Entity<Course>().Property(x => x.Duration).HasColumnName("Duration");
-            modelBuilder.Entity<Course>().Property(x => x.Credit).HasColumnName("Credit");
-            modelBuilder.Entity<Course>().Property(x => x.InsertedDate).HasColumnName("InsertedDate");
-            modelBuilder.Entity<Course>().Property(x => x.UpdatedDate).HasColumnName("UpdatedDate");
+            e.ToTable("Enrollments");
+            e.HasIndex(x => new { x.StudentId, x.CourseId }).IsUnique();
 
-            modelBuilder.Entity<Course>()
-                .HasRequired<Department>(x => x.Departments)
-                .WithMany(y => y.Courses)
-                .HasForeignKey(x => x.DepartmentId);
+            e.HasOne(x => x.Student)
+             .WithMany(s => s.Enrollments)
+             .HasForeignKey(x => x.StudentId)
+             .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Course>()
-                .HasRequired<Level>(x => x.Levels)
-                .WithMany(y => y.Courses)
-                .HasForeignKey(x => x.LevelId);
-        }
-        private static void CreateTableEnrollment(DbModelBuilder modelBuilder)
+            e.HasOne(x => x.Course)
+             .WithMany(c => c.Enrollments)
+             .HasForeignKey(x => x.CourseId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void CreateTableUser(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(e =>
         {
-            modelBuilder.Entity<Enrollment>().ToTable("Enrollments");
-            modelBuilder.Entity<Enrollment>().HasKey(x => x.EnrollmentId);
-            modelBuilder.Entity<Enrollment>().Property(x => x.EnrollmentId).HasColumnName("EnrollmentId");
-            modelBuilder.Entity<Enrollment>().Property(x => x.StudentId).HasColumnName("StudentId");
-            modelBuilder.Entity<Enrollment>().Property(x => x.CourseId).HasColumnName("CourseId");
-            modelBuilder.Entity<Enrollment>().Property(x => x.EnrolledDate).HasColumnName("EnrolledDate");
-            modelBuilder.Entity<Enrollment>().Property(x => x.InsertedDate).HasColumnName("InsertedDate");
-            modelBuilder.Entity<Enrollment>().Property(x => x.UpdatedDate).HasColumnName("UpdatedDate");
-        }
-
-        private static void CreateTableUser(DbModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<User>().ToTable("Users");
-            modelBuilder.Entity<User>().HasKey(x => x.UserId);
-            modelBuilder.Entity<User>().Property(x => x.UserId).HasColumnName("UserId");
-            modelBuilder.Entity<User>().Property(x => x.Username).HasColumnName("Username");
-            modelBuilder.Entity<User>().Property(x => x.Password).HasColumnName("Password");
-            //modelBuilder.Entity<User>().Property(x => x.Email).HasColumnName("Email");
-            modelBuilder.Entity<User>().Property(x => x.Role).HasColumnName("Role");
-            modelBuilder.Entity<User>().Property(x => x.InsertedDate).HasColumnName("InsertedDate");
-            modelBuilder.Entity<User>().Property(x => x.UpdatedDate).HasColumnName("UpdatedDate");
-        }
+            e.ToTable("Users");
+            e.Property(x => x.Username).HasMaxLength(50).IsRequired();
+            e.HasIndex(x => x.Username).IsUnique();
+            e.Property(x => x.Role).HasMaxLength(20);
+        });
     }
 }

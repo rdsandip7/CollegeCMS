@@ -1,0 +1,8 @@
+@if (TempData["Flash"] is string flash && flash.Split('|', 2) is [var kind, var message])
+{
+    <div class="alert alert-@kind alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+        <i class="bi @(kind == "success" ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill")"></i>
+        <div>@message</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}

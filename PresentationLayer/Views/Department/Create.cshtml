@@ -1,0 +1,8 @@
+@model DepartmentViewModel
+@{
+    ViewData["Title"] = "New department";
+    ViewData["SubmitLabel"] = "Create department";
+}
+<partial name="_FormHeader" />
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,10 @@
+@model DeleteButtonModel
+@if (User.IsInRole(Roles.Admin))
+{
+    <form asp-controller="@Model.Controller" asp-action="@Model.Action" asp-route-id="@Model.Id" method="post" class="d-inline"
+          data-confirm="Delete @Model.Name? This cannot be undone.">
+        <button type="submit" class="btn btn-sm btn-ghost-danger" title="Delete" aria-label="Delete @Model.Name">
+            <i class="bi bi-trash3"></i>
+        </button>
+    </form>
+}

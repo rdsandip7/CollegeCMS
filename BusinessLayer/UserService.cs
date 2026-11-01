@@ -1,49 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CoreLayer;
 using DataAccessLayer;
 
-namespace BusinessLayer
+namespace BusinessLayer;
+
+public class UserService(UserCRUD userTableActions, EmployeeCRUD employeeTableActions)
 {
-    public  class UserService
+    /// <summary>
+    /// Creates a staff account. If an employee record has the same email, the account is linked to it.
+    /// </summary>
+    public async Task<OperationResult> RegisterAsync(string username, string password, string email)
     {
-        UserCRUD userTableActions;
+        if (await userTableActions.GetUserByUsernameAsync(username) is not null)
+            return OperationResult.Fail("That username is already taken. Please choose another one.");
 
-        public UserService()
-        {
-            userTableActions = new UserCRUD(); 
-        }
+        var employee = await employeeTableActions.GetEmployeeByEmailAsync(email);
+        if (employee?.UserId is not null)
+            return OperationResult.Fail("An account is already linked to this email address.");
 
-        public int SaveUser(User userData)
+        var userId = await userTableActions.SaveUserAsync(new User
         {
-            return userTableActions.SaveUser(userData);
-        }
-        public User GetUserByUserId(int CourseId)
-        {
-            return userTableActions.GetUserByUserId(CourseId);
-        }
-        public User GetUserByUsername(string CourseName)
-        {
-            return userTableActions.GetUserByUsername(CourseName);
-        }
+            Username = username,
+            PasswordHash = PasswordHasher.Hash(password),
+            Role = Roles.Staff,
+            InsertedDate = DateTime.Now,
+        });
 
-       
-        public void UpdateUser(User dataTobeUpdated)
+        if (employee is not null)
         {
-            userTableActions.UpdateUser(dataTobeUpdated);
-        }
-        public void DeleteUser(int UserId)
-        {
-            User userToBeDeleted = userTableActions.GetUserByUserId(UserId);
-            userTableActions.RemoveUser(userToBeDeleted);
-        }
-        public void RemoveUser(User dataToBeDeleted)
-        {
-            userTableActions.RemoveUser(dataToBeDeleted);
+            employee.UserId = userId;
+            await employeeTableActions.UpdateEmployeeAsync(employee);
         }
 
+        return OperationResult.Success;
+    }
+
+    /// <summary>Returns the user when the username and password match, otherwise null.</summary>
+    public async Task<User?> AuthenticateAsync(string username, string password)
+    {
+        var user = await userTableActions.GetUserByUsernameAsync(username);
+        return user is not null && PasswordHasher.Verify(password, user.PasswordHash) ? user : null;
     }
 }

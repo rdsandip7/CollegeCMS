@@ -1,213 +1,76 @@
-﻿<!DOCTYPE html>
+@model DashboardViewModel
 @{
-    ViewBag.Title = "Dashboard";
+    ViewData["Title"] = "Dashboard";
+    var s = Model.Statistics;
+    var tiles = new[]
+    {
+        (Label: "Students", Value: s.Students, Icon: "bi-people", Controller: "Student"),
+        (Label: "Employees", Value: s.Employees, Icon: "bi-person-badge", Controller: "Employee"),
+        (Label: "Courses", Value: s.Courses, Icon: "bi-journal-bookmark", Controller: "Course"),
+        (Label: "Departments", Value: s.Departments, Icon: "bi-building", Controller: "Department"),
+        (Label: "Levels", Value: s.Levels, Icon: "bi-layers", Controller: "Level"),
+        (Label: "Enrollments", Value: s.Enrollments, Icon: "bi-card-checklist", Controller: "Student"),
+    };
+    var maxStudents = Math.Max(1, Model.Departments.Select(d => d.Students).DefaultIfEmpty().Max());
 }
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Dashboard</title>
-    <!-- BOOTSTRAP STYLES-->
-    <link href="~/assets/css/bootstrap.css" rel="stylesheet" />
-    <!-- FONTAWESOME STYLES-->
-    <link href="~/assets/css/font-awesome.css" rel="stylesheet" />
-    <!-- CUSTOM STYLES-->
-    <link href="~/assets/css/custom.css" rel="stylesheet" />
-    <!-- GOOGLE FONTS-->
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
-</head>
-<body>
-    <div id="wrapper">
-       
-        <div class="navbar navbar-inverse">
-            <div class="adjust-nav">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="#"><i class="fa fa-square-o "></i>&nbsp;Mtech CollegeCMS</a>
-                </div>
-                <div class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav navbar-right">
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">Open Ticket</a></li>
-                        <li><a href="#">Report Bug</a></li>
-                    </ul>
-                </div>
-
-            </div>
-        </div>
-         <div>
-                @Html.Partial("~/Views/Shared/navigator.cshtml")
-                
-            </div>
-
-
-
-        <div id="page-wrapper">
-            <div id="page-inner">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h2>Admin Dashboard</h2>
-                    </div>
-                </div>               
-                <!-- /. ROW  -->
-                <hr />
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label>Find By Name: </label>
-                           @Html.TextBox("SearchString",ViewBag.currentFilter as string)
-                     
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label>search</label>
-                        <input type="submit" class="btn btn-danger btn-lg btn-block" value="Search" />
-                    </div>
-                    
-                </div>
-                <hr />
-                <div class="row">
-                    <div class="col-md-6">
-                        <h5>Department</h5>
-                       @*  @Html.Partial("~/Views/Department/index.cshtml")*@
-                    </div>
-                </div>
-                <!-- /. ROW  -->
-                <hr />
-
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <h5>Panel Sample</h5>
-                        <div class="panel panel-primary">
-                            <div class="panel-heading">
-                                Default Panel
-                            </div>
-                            <div class="panel-body">
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum tincidunt est vitae ultrices accumsan. Aliquam ornare lacus adipiscing, posuere lectus et, fringilla augue.</p>
-                            </div>
-                            <div class="panel-footer">
-                                Panel Footer
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <h5>Accordion Sample</h5>
-                        <div class="panel-group" id="accordion">
-                            <div class="panel panel-default">
-                                <div class="panel-heading">
-                                    <h4 class="panel-title">
-                                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" class="collapsed">Collapsible Group Item #1</a>
-                                    </h4>
-                                </div>
-                                <div id="collapseOne" class="panel-collapse collapse" style="height: 0px;">
-                                    <div class="panel-body">
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="panel panel-default">
-                                <div class="panel-heading">
-                                    <h4 class="panel-title">
-                                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">Collapsible Group Item #2</a>
-                                    </h4>
-                                </div>
-                                <div id="collapseTwo" class="panel-collapse in" style="height: auto;">
-                                    <div class="panel-body">
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="panel panel-default">
-                                <div class="panel-heading">
-                                    <h4 class="panel-title">
-                                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" class="collapsed">Collapsible Group Item #3</a>
-                                    </h4>
-                                </div>
-                                <div id="collapseThree" class="panel-collapse collapse">
-                                  
-
-                                        <div class="panel-body">
-                                             Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.
-                                        </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <h5>Tabs Sample</h5>
-                        <ul class="nav nav-tabs">
-                            <li class="active"><a href="#home" data-toggle="tab">Home</a>
-                            </li>
-                            <li class=""><a href="#profile" data-toggle="tab">Profile</a>
-                            </li>
-                            <li class=""><a href="#messages" data-toggle="tab">Messages</a>
-                            </li>
-
-                        </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane fade active in" id="home">
-                                <h4>Home Tab</h4>
-                                <p>
-                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit eserunt mollit anim id est laborum.
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit eserunt mollit anim id est laborum.
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit eserunt mollit anim id est laborum.
-                                </p>
-                            </div>
-                            <div class="tab-pane fade" id="profile">
-                                <h4>Profile Tab</h4>
-                                <p>
-                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit eserunt mollit anim id est laborum.
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit eserunt mollit anim id est laborum.
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit eserunt mollit anim id est laborum.
-                                </p>
-
-                            </div>
-                            <div class="tab-pane fade" id="messages">
-                                <h4>Messages Tab</h4>
-                                <p >
-                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit eserunt mollit anim id est laborum.
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit eserunt mollit anim id est laborum.
-                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit eserunt mollit anim id est laborum.
-                                </p>
-
-                            </div>
-
-                        </div>
-                    </div>
-
-                </div>
-                <!-- /. ROW  -->
-                <hr />
-                  <div class="row">
-                    <div class="col-md-12">
-                        <h5>Information</h5>
-                            This is a type of bare admin that means you can customize your own admin using this admin structured  template . For More Examples of bootstrap elements or components please visit official bootstrap website <a href="http://getbootstrap.com" target="_blank">getbootstrap.com</a>
-                        . And if you want full template please download <a href="http://www.binarytheme.com/bootstrap-free-admin-dashboard-template/" target="_blank" >FREE BCORE ADMIN </a>&nbsp;,&nbsp;  <a href="http://www.binarytheme.com/free-bootstrap-admin-template-siminta/" target="_blank" >FREE SIMINTA ADMIN</a> and <a href="http://binarycart.com/" target="_blank" >FREE BINARY ADMIN</a>.
-
-                    </div>
-                </div>
-                <!-- /. ROW  -->
-
-            </div>
-            <!-- /. PAGE INNER  -->
-        </div>
-        <!-- /. PAGE WRAPPER  -->
+<div class="page-header">
+    <div>
+        <h1 class="h3 mb-1">Welcome back, @User.Identity?.Name</h1>
+        <p class="text-body-secondary mb-0">Here's how the college looks today.</p>
     </div>
-    <!-- /. WRAPPER  -->
-    <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
-    <!-- JQUERY SCRIPTS -->
-    <script src="~/assets/js/jquery-1.10.2.js"></script>
-    <!-- BOOTSTRAP SCRIPTS -->
-    <script src="~/assets/js/bootstrap.min.js"></script>
-    <!-- METISMENU SCRIPTS -->
-    <script src="~/assets/js/jquery.metisMenu.js"></script>
-    <!-- CUSTOM SCRIPTS -->
-    <script src="~/assets/js/custom.js"></script>
-</body>
-</html>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" asp-controller="Employee" asp-action="Create"><i class="bi bi-person-plus"></i> Add employee</a>
+        <a class="btn btn-primary" asp-controller="Student" asp-action="Create"><i class="bi bi-plus-lg"></i> Admit student</a>
+    </div>
+</div>
 
+<div class="row g-3 mb-4">
+    @foreach (var tile in tiles)
+    {
+        <div class="col-6 col-md-4 col-xl-2">
+            <a class="stat-tile" asp-controller="@tile.Controller" asp-action="Index">
+                <i class="bi @tile.Icon"></i>
+                <div class="stat-value">@tile.Value</div>
+                <div class="stat-label">@tile.Label</div>
+            </a>
+        </div>
+    }
+</div>
+
+<div class="card">
+    <div class="card-header bg-transparent"><h2 class="h6 mb-0">Departments at a glance</h2></div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th class="w-50">Students</th>
+                    <th class="text-end">Employees</th>
+                    <th class="text-end">Courses</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Departments)
+                {
+                    <tr>
+                        <td class="fw-medium">@d.Department</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" role="progressbar" aria-label="@d.Department students" aria-valuenow="@d.Students" aria-valuemin="0" aria-valuemax="@maxStudents" style="height:.5rem">
+                                    <div class="progress-bar" style="width:@(d.Students * 100 / maxStudents)%"></div>
+                                </div>
+                                <span class="tabular">@d.Students</span>
+                            </div>
+                        </td>
+                        <td class="text-end tabular">@d.Employees</td>
+                        <td class="text-end tabular">@d.Courses</td>
+                    </tr>
+                }
+                @if (Model.Departments.Count == 0)
+                {
+                    <partial name="_EmptyRow" model="4" />
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

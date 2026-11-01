@@ -1,0 +1,29 @@
+@model IPagedResult
+@{
+    var search = ViewData["Search"] as string;
+    var sort = ViewData["Sort"] as string;
+    var first = Model.TotalCount == 0 ? 0 : (Model.PageNumber - 1) * Model.PageSize + 1;
+    var last = Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount);
+}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 py-2 border-top">
+    <small class="text-body-secondary">Showing @first–@last of @Model.TotalCount</small>
+    @if (Model.PageCount > 1)
+    {
+        <nav aria-label="Pagination">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(Model.HasPrevious ? "" : "disabled")">
+                    <a class="page-link" asp-route-page="@(Model.PageNumber - 1)" asp-route-search="@search" asp-route-sort="@sort" aria-label="Previous">&laquo;</a>
+                </li>
+                @for (var p = 1; p <= Model.PageCount; p++)
+                {
+                    <li class="page-item @(p == Model.PageNumber ? "active" : "")">
+                        <a class="page-link" asp-route-page="@p" asp-route-search="@search" asp-route-sort="@sort">@p</a>
+                    </li>
+                }
+                <li class="page-item @(Model.HasNext ? "" : "disabled")">
+                    <a class="page-link" asp-route-page="@(Model.PageNumber + 1)" asp-route-search="@search" asp-route-sort="@sort" aria-label="Next">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

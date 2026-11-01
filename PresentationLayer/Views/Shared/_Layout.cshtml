@@ -1,29 +1,105 @@
-﻿<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>@ViewBag.Title</title>
-    @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] is string t ? $"{t} · College CMS" : "College CMS")</title>
+    <script>
+        // Apply the saved or system colour theme before first paint.
+        (function () {
+            let theme = null;
+            try { theme = localStorage.getItem("theme"); } catch { }
+            theme ??= matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            document.documentElement.setAttribute("data-bs-theme", theme);
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <div style="width: auto;">
-        @if (Request.IsAuthenticated)
-        {
-            <strong>Hi, @Html.Encode(User.Identity.Name)!</strong>
-            @Html.ActionLink("Sign Out", "Logout", "User")
-        }
-        else
-        {
-            @Html.ActionLink("Register", "Register", "User")
-            <span>| </span>
-            @Html.ActionLink("Sign In", "Login", "User")
-        }
-    </div>
-    @RenderBody()
+    @{
+        var controller = ViewContext.RouteData.Values["controller"] as string;
+        string Active(string name) => controller == name ? "active" : "";
+        var signedIn = User.Identity?.IsAuthenticated == true;
+    }
+    <nav class="navbar navbar-expand-lg app-navbar sticky-top">
+        <div class="container-xl">
+            <a class="navbar-brand d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark"><i class="bi bi-mortarboard-fill"></i></span>
+                <span>College<strong>CMS</strong></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                @if (signedIn)
+                {
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item"><a class="nav-link @Active("Home")" asp-controller="Home" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Student")" asp-controller="Student" asp-action="Index"><i class="bi bi-people"></i> Students</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Employee")" asp-controller="Employee" asp-action="Index"><i class="bi bi-person-badge"></i> Employees</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Course")" asp-controller="Course" asp-action="Index"><i class="bi bi-journal-bookmark"></i> Courses</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Department")" asp-controller="Department" asp-action="Index"><i class="bi bi-building"></i> Departments</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Level")" asp-controller="Level" asp-action="Index"><i class="bi bi-layers"></i> Levels</a></li>
+                    </ul>
+                }
+                else
+                {
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
+                    </ul>
+                }
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-icon" id="themeToggle" aria-label="Toggle dark mode">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    @if (signedIn)
+                    {
+                        <div class="dropdown">
+                            <button class="btn btn-user dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="avatar">@User.Identity!.Name![..1].ToUpperInvariant()</span>
+                                <span class="d-none d-sm-inline">@User.Identity.Name</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><span class="dropdown-item-text small text-body-secondary">Signed in as @(User.IsInRole(Roles.Admin) ? "administrator" : "staff")</span></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-controller="User" asp-action="Logout" method="post">
+                                        <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right"></i> Sign out</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-primary btn-sm" asp-controller="User" asp-action="Register">Register</a>
+                        <a class="btn btn-primary btn-sm" asp-controller="User" asp-action="Login">Sign in</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    @Scripts.Render("~/bundles/jquery")
-    @RenderSection("scripts", required: false)
+    <main class="container-xl py-4">
+        <partial name="_Flash" />
+        @RenderBody()
+    </main>
+
+    <footer class="app-footer">
+        <div class="container-xl d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; @DateTime.Now.Year Mtech College · College CMS</span>
+            <span>ASP.NET Core 10 · EF Core · SQLite</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

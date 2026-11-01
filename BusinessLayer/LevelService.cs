@@ -1,58 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CoreLayer;
 using DataAccessLayer;
 
-namespace BusinessLayer
+namespace BusinessLayer;
+
+public class LevelService(LevelCRUD levelTableActions)
 {
-    public class LevelService
+    public Task<PagedResult<Level>> GetLevelsAsync(ListQuery query) => levelTableActions.GetLevelsAsync(query);
+
+    public Task<List<Level>> GetAllLevelsAsync() => levelTableActions.GetAllLevelsAsync();
+
+    public Task<Level?> GetLevelByIdAsync(int levelId) => levelTableActions.GetLevelByIdAsync(levelId);
+
+    public async Task SaveLevelAsync(Level level)
     {
-         LevelCRUD levelTableActions;
+        level.InsertedDate = DateTime.Now;
+        await levelTableActions.SaveLevelAsync(level);
+    }
 
-         public LevelService()
-        {
-            levelTableActions = new LevelCRUD(); 
-        }
+    public async Task<OperationResult> UpdateLevelAsync(Level changes)
+    {
+        var level = await levelTableActions.GetLevelByIdAsync(changes.LevelId);
+        if (level is null)
+            return OperationResult.Fail("Level not found.");
 
-        public void SaveLevel(Level levelData)
-        {
-            levelTableActions.SaveLevel(levelData);
-        }
-        public Level GetLevelById(int LevelId)
-        {
-            return levelTableActions.GetLevelById(LevelId);
-        }
-        /*public Level GetLevelBySemester(string Semester)
-        {
-            return levelTableActions.GetLevelBySemester(Semester);
-        }*/
-        public void UpdateLevel(Level dataTobeUpdated)
-        {
-            levelTableActions.UpdateLevel(dataTobeUpdated);
-        }
-        public void DeleteLevel(int LevelId)
-        {
-            Level levelToBeDeleted = levelTableActions.GetLevelById(LevelId);
-            levelTableActions.RemoveLevel(levelToBeDeleted);
-        }
-        public void RemoveLevel(Level dataToBeDeleted)
-        {
-            levelTableActions.RemoveLevel(dataToBeDeleted);
-        }
+        level.Year = changes.Year;
+        level.Semester = changes.Semester;
+        level.Description = changes.Description;
+        level.UpdatedDate = DateTime.Now;
+        await levelTableActions.UpdateLevelAsync(level);
+        return OperationResult.Success;
+    }
 
-        public IList<Level> GetAllLevels(string sortOrder, string searchString)
-        {
-            return levelTableActions.GetAllLevels(sortOrder,searchString);
-        }
+    public async Task<OperationResult> DeleteLevelAsync(int levelId)
+    {
+        var level = await levelTableActions.GetLevelByIdAsync(levelId);
+        if (level is null)
+            return OperationResult.Fail("Level not found.");
+        if (await levelTableActions.HasDependentsAsync(levelId))
+            return OperationResult.Fail($"\"{level.DisplayName}\" still has students or courses assigned.");
 
-
-
-        public Level GetLevelById(string p)
-        {
-            throw new NotImplementedException();
-        }
+        await levelTableActions.RemoveLevelAsync(level);
+        return OperationResult.Success;
     }
 }

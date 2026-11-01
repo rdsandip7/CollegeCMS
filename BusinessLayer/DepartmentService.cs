@@ -1,54 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CoreLayer;
 using DataAccessLayer;
 
-namespace BusinessLayer
+namespace BusinessLayer;
+
+public class DepartmentService(DepartmentCRUD departmentTableActions)
 {
-    public class DepartmentService
+    public Task<PagedResult<Department>> GetDepartmentsAsync(ListQuery query) =>
+        departmentTableActions.GetDepartmentsAsync(query);
+
+    public Task<List<Department>> GetAllDepartmentsAsync() => departmentTableActions.GetAllDepartmentsAsync();
+
+    public Task<Department?> GetDepartmentByIdAsync(int departmentId) =>
+        departmentTableActions.GetDepartmentByIdAsync(departmentId);
+
+    public async Task<OperationResult> SaveDepartmentAsync(Department department)
     {
-        DepartmentCRUD departmentTableActions;
+        if (await departmentTableActions.DepartmentNameExistsAsync(department.DepartmentName))
+            return OperationResult.Fail($"A department named \"{department.DepartmentName}\" already exists.");
 
-        public DepartmentService()
-        {
-            departmentTableActions = new DepartmentCRUD(); 
-        }
+        department.InsertedDate = DateTime.Now;
+        await departmentTableActions.SaveDepartmentAsync(department);
+        return OperationResult.Success;
+    }
 
-        public void SaveDepartment(Department departmentData)
-        {
-            departmentTableActions.SaveDepartment(departmentData);
-        }
-        public Department GetDepartmentById(int DepartmentId)
-        {
-            return departmentTableActions.GetDepartmentById(DepartmentId);
-        }
-        public Department GetDepartmentByName(string DepartmentName)
-        {
-            return departmentTableActions.GetDepartmentByName(DepartmentName);
-        }
-        public void UpdateDepartment(Department dataTobeUpdated)
-        {
-            departmentTableActions.UpdateDepartment(dataTobeUpdated);
-        }
-        public void RemoveDeparment(Department dataToBeDeleted)
-        {
-            departmentTableActions.RemoveDepartment(dataToBeDeleted);
-        }
-        public void DeleteDepartment(int DepartmentId)
-        {
-            Department departmentToBeDeleted = departmentTableActions.GetDepartmentById(DepartmentId);
-            departmentTableActions.RemoveDepartment(departmentToBeDeleted);
-        }
-       
-        public List<Department> GetAllDepartments(string sortOrder, string searchString)
-        {
-            return departmentTableActions.GetAllDepartments(sortOrder, searchString);
-        }
+    public async Task<OperationResult> UpdateDepartmentAsync(Department changes)
+    {
+        var department = await departmentTableActions.GetDepartmentByIdAsync(changes.DepartmentId);
+        if (department is null)
+            return OperationResult.Fail("Department not found.");
+        if (await departmentTableActions.DepartmentNameExistsAsync(changes.DepartmentName, changes.DepartmentId))
+            return OperationResult.Fail($"A department named \"{changes.DepartmentName}\" already exists.");
 
+        department.DepartmentName = changes.DepartmentName;
+        department.Description = changes.Description;
+        department.DepartmentHead = changes.DepartmentHead;
+        department.EstablishedDate = changes.EstablishedDate;
+        department.UpdatedDate = DateTime.Now;
+        await departmentTableActions.UpdateDepartmentAsync(department);
+        return OperationResult.Success;
+    }
 
-        
+    public async Task<OperationResult> DeleteDepartmentAsync(int departmentId)
+    {
+        var department = await departmentTableActions.GetDepartmentByIdAsync(departmentId);
+        if (department is null)
+            return OperationResult.Fail("Department not found.");
+        if (await departmentTableActions.HasDependentsAsync(departmentId))
+            return OperationResult.Fail($"\"{department.DepartmentName}\" still has employees, students or courses. Move or remove them first.");
+
+        await departmentTableActions.RemoveDepartmentAsync(department);
+        return OperationResult.Success;
     }
 }

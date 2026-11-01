@@ -1,0 +1,37 @@
+@model LevelViewModel
+<form method="post" class="card form-card">
+    <div class="card-body p-4">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger empty-hidden"></div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="Year" class="form-label"></label>
+                <input asp-for="Year" class="form-control" autofocus />
+                <span asp-validation-for="Year" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="col-md-8">
+                <label asp-for="Semester" class="form-label"></label>
+                <input asp-for="Semester" class="form-control" placeholder="e.g. First Semester" list="semesterOptions" />
+                <datalist id="semesterOptions">
+                    <option value="First Semester"></option>
+                    <option value="Second Semester"></option>
+                    <option value="Third Semester"></option>
+                    <option value="Fourth Semester"></option>
+                    <option value="Fifth Semester"></option>
+                    <option value="Sixth Semester"></option>
+                    <option value="Seventh Semester"></option>
+                    <option value="Eighth Semester"></option>
+                </datalist>
+                <span asp-validation-for="Semester" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Description" class="form-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="invalid-feedback d-block"></span>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+        <button type="submit" class="btn btn-primary">@ViewData["SubmitLabel"]</button>
+    </div>
+</form>

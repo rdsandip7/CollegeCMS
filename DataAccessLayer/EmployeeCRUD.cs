@@ -1,156 +1,71 @@
-﻿using CoreLayer;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using CoreLayer;
+using Microsoft.EntityFrameworkCore;
 
-namespace DataAccessLayer
+namespace DataAccessLayer;
+
+public class EmployeeCRUD(DataContext dataContext)
 {
-    public class EmployeeCRUD
+    private static readonly Dictionary<string, Expression<Func<Employee, object?>>> SortColumns = new()
     {
-        //Create Employee
-        public void SaveEmployee(Employee employee)
+        ["name"] = x => x.FirstName,
+        ["email"] = x => x.Email,
+        ["department"] = x => x.Department!.DepartmentName,
+        ["position"] = x => x.PersonalInfo.Position,
+        ["hired"] = x => x.PersonalInfo.HiredDate,
+    };
+
+    //Create Employee (the personal info row is saved with it)
+    public async Task SaveEmployeeAsync(Employee employee)
+    {
+        dataContext.Employees.Add(employee);
+        await dataContext.SaveChangesAsync();
+    }
+
+    //Read Employee
+    public Task<Employee?> GetEmployeeByIdAsync(int employeeId) =>
+        dataContext.Employees
+            .Include(x => x.Department)
+            .Include(x => x.PersonalInfo)
+            .FirstOrDefaultAsync(x => x.EmployeeId == employeeId);
+
+    public Task<Employee?> GetEmployeeByEmailAsync(string email) =>
+        dataContext.Employees.FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower());
+
+    public Task<bool> EmailExistsAsync(string email, int? exceptId = null) =>
+        dataContext.Employees.AnyAsync(x => x.Email.ToLower() == email.ToLower() && x.EmployeeId != exceptId);
+
+    public Task<PagedResult<Employee>> GetEmployeesAsync(ListQuery query)
+    {
+        IQueryable<Employee> employees = dataContext.Employees.AsNoTracking()
+            .Include(x => x.Department)
+            .Include(x => x.PersonalInfo);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            using (var dataContext = new DataContext())
-            {
-                var addedEmployee = dataContext.Employees.Add(employee);
-                employee.EmployeePersonalInfo.EmployeeId = addedEmployee.EmployeeId;
-                addedEmployee.EmployeePersonalInfo = dataContext.EmployeePersonalInfos.Add(employee.EmployeePersonalInfo);
-                dataContext.SaveChanges();
-            }
+            var s = query.Search.Trim().ToLower();
+            employees = employees.Where(x => x.FirstName.ToLower().Contains(s)
+                || (x.MiddleName != null && x.MiddleName.ToLower().Contains(s))
+                || x.LastName.ToLower().Contains(s)
+                || x.Email.ToLower().Contains(s)
+                || x.Department!.DepartmentName.ToLower().Contains(s)
+                || (x.PersonalInfo.Position != null && x.PersonalInfo.Position.ToLower().Contains(s)));
         }
 
-        //Read Employee
-        public Employee GetEmployeeById(int EmployeeId)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from employee in dataContext.Employees
-                              where employee.EmployeeId == EmployeeId
-                              select employee).First();
-                return result;
-            }
-        }
-        public Employee GetEmployeeByName(string Name)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from employee in dataContext.Employees
-                              where employee.FirstName == Name
-                              select employee).First();
-                return result;
-            }
-        }
-        public Employee GetEmployeeByFullName(string FirstName, string MiddleName, string LastName)
-        {
-            using (var dataContext = new DataContext())
-            {
-                try 
-                {
-                    Employee Employee = (from employee in dataContext.Employees
-                                  where employee.FirstName == FirstName &&employee.MiddleName==MiddleName && employee.LastName== LastName
-                                  select employee).First();
-                    return Employee;
-                }
-                catch(Exception ex)
-                {
-                    return (null);
-                }
-            }
-        }
+        return employees.ApplySort(query, SortColumns).ToPagedResultAsync(query);
+    }
 
+    //Update Employee
+    public async Task UpdateEmployeeAsync(Employee employee)
+    {
+        dataContext.Employees.Update(employee);
+        await dataContext.SaveChangesAsync();
+    }
 
-        public Employee GetEmployeeByEmail(string Email)
-        {
-            using (var dataContext = new DataContext())
-            {
-                try
-                {
-                    Employee Employee = (from employee in dataContext.Employees
-                                         where employee.Email==Email
-                                         select employee).First();
-                    return Employee;
-                }
-                catch (Exception ex)
-                {
-                    return (null);
-                }
-            }
-        }
-
-        public List<Employee> GetAllEmployees(string sortOrder, string searchString)
-        {
-            using (var dataContext = new DataContext())
-            {
-                IEnumerable<Employee> Employee = (from employee in dataContext.Employees select employee);
-
-                if (!string.IsNullOrEmpty(searchString))
-                {
-                    Employee = Employee.Where(x => x.FirstName.ToLower().Contains(searchString.ToLower()) || x.MiddleName.ToLower().Contains(searchString.ToLower()) || x.LastName.ToLower().Contains(searchString.ToLower()));
-
-                }
-                
-                if (!string.IsNullOrEmpty(sortOrder))
-                {
-                    switch (sortOrder)
-                    {
-                        case "fname_asc":
-                            Employee = Employee.OrderBy(x => x.FirstName).ToList();
-                            break;
-                        case "fname_desc":
-                            Employee = Employee.OrderByDescending(x => x.FirstName).ToList();
-                            break;
-                        case "mname_asc":
-                            Employee = Employee.OrderBy(x => x.MiddleName).ToList();
-                            break;
-                        case "mname_desc":
-                            Employee = Employee.OrderByDescending(x => x.MiddleName).ToList();
-                            break;
-                        case "lname_asc":
-                            Employee = Employee.OrderBy(x => x.LastName).ToList();
-                            break;
-                        case "lname_desc":
-                            Employee = Employee.OrderByDescending(x => x.LastName).ToList();
-                            break;
-                        case "department_asc":
-                            Employee = Employee.OrderBy(x => x.Department).ToList();
-                            break;
-                        case "department_dsc":
-                            Employee = Employee.OrderByDescending(x => x.Department).ToList();
-                            break;                       
-                    }
-                }
-                else
-                {
-                    Employee = Employee.ToList();
-                }
-
-                return Employee.ToList();
-            }
-        }
-
-        //Update Employee
-        public void UpdateEmployee(Employee newEmployeeValue)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(newEmployeeValue).State = EntityState.Modified;
-                dataContext.Entry(newEmployeeValue.EmployeePersonalInfo).State = EntityState.Modified;
-                dataContext.SaveChanges();
-            }
-        }
-
-        //Delete Employee
-        public void RemoveEmployee(Employee employeeToBeDeleted)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(employeeToBeDeleted).State = EntityState.Deleted;
-                dataContext.Entry(employeeToBeDeleted.EmployeePersonalInfo).State = EntityState.Deleted;
-                dataContext.SaveChanges();
-            }
-        }
+    //Delete Employee (personal info is removed by cascade)
+    public async Task RemoveEmployeeAsync(Employee employee)
+    {
+        dataContext.Employees.Remove(employee);
+        await dataContext.SaveChangesAsync();
     }
 }

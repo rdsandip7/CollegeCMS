@@ -1,129 +1,65 @@
-﻿using CoreLayer;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using CoreLayer;
+using Microsoft.EntityFrameworkCore;
 
-namespace DataAccessLayer
+namespace DataAccessLayer;
+
+public class CourseCRUD(DataContext dataContext)
 {
-    public class CourseCRUD
+    private static readonly Dictionary<string, Expression<Func<Course, object?>>> SortColumns = new()
     {
-        //Create Course
-        public void SaveCourse(Course course)
+        ["name"] = x => x.CourseName,
+        ["department"] = x => x.Department!.DepartmentName,
+        ["level"] = x => x.Level!.Year,
+        ["duration"] = x => x.Duration,
+        ["credit"] = x => x.Credit,
+    };
+
+    //Create Course
+    public async Task SaveCourseAsync(Course course)
+    {
+        dataContext.Courses.Add(course);
+        await dataContext.SaveChangesAsync();
+    }
+
+    //Read Course
+    public Task<Course?> GetCourseByIdAsync(int courseId) =>
+        dataContext.Courses
+            .Include(x => x.Department)
+            .Include(x => x.Level)
+            .FirstOrDefaultAsync(x => x.CourseId == courseId);
+
+    public Task<List<Course>> GetAllCoursesAsync() =>
+        dataContext.Courses.AsNoTracking().Include(x => x.Level).OrderBy(x => x.CourseName).ToListAsync();
+
+    public Task<PagedResult<Course>> GetCoursesAsync(ListQuery query)
+    {
+        IQueryable<Course> courses = dataContext.Courses.AsNoTracking()
+            .Include(x => x.Department)
+            .Include(x => x.Level);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Courses.Add(course);
-                dataContext.SaveChanges();
-            }
+            var s = query.Search.Trim().ToLower();
+            courses = courses.Where(x => x.CourseName.ToLower().Contains(s)
+                || (x.Description != null && x.Description.ToLower().Contains(s))
+                || x.Department!.DepartmentName.ToLower().Contains(s));
         }
 
-        //Read Course
-        public Course GetCourseById(int courseId)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from course in dataContext.Courses
-                              where course.CourseId == courseId
-                              select course).First();
-                return result;
-            }
-        }
-        public Course GetCourseByName(string CourseName)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from course in dataContext.Courses
-                              where course.CourseName == CourseName
-                              select course).First();
-                return result;
-            }
-        }
+        return courses.ApplySort(query, SortColumns).ToPagedResultAsync(query);
+    }
 
-        public List<Course> GetAllCourses(string sortOrder, string searchString)
-        {
-            using (var dataContext = new DataContext())
-            {
-                IEnumerable<Course> Course = from course in dataContext.Courses select course;
+    //Update Course
+    public async Task UpdateCourseAsync(Course course)
+    {
+        dataContext.Courses.Update(course);
+        await dataContext.SaveChangesAsync();
+    }
 
-                if (!string.IsNullOrEmpty(searchString))
-                {
-                    Course = Course.Where(x => x.CourseName.ToLower().Contains(searchString.ToLower()) || x.Description.ToLower().Contains(searchString.ToLower()) || x.Departments.ToString().Contains(searchString.ToLower()));
-
-                }
-                
-                if (!string.IsNullOrEmpty(sortOrder))
-                {
-                    switch (sortOrder)
-                    {
-                        case "name_asc":
-                            Course = Course.OrderBy(x => x.CourseName).ToList();
-                            break;
-                        case "name_desc":
-                            Course = Course.OrderByDescending(x => x.CourseName).ToList();
-                            break;
-                        case "description_asc":
-                            Course = Course.OrderBy(x => x.Description).ToList();
-                            break;
-                        case "description_dsc":
-                            Course = Course.OrderByDescending(x => x.Description).ToList();
-                            break;
-                        case "department_asc":
-                            Course = Course.OrderBy(x => x.Departments).ToList();
-                            break;
-                        case "department_dsc":
-                            Course = Course.OrderByDescending(x => x.Departments).ToList();
-                            break;
-                        case "level_asc":
-                            Course = Course.OrderBy(x => x.Levels).ToList();
-                            break;
-                        case "level_dsc":
-                            Course = Course.OrderByDescending(x => x.Levels).ToList();
-                            break;
-                        case "duration_asc":
-                            Course = Course.OrderBy(x => x.Duration).ToList();
-                            break;
-                        case "duration_dsc":
-                            Course = Course.OrderByDescending(x => x.Duration).ToList();
-                            break;
-                        case "credit_asc":
-                            Course = Course.OrderBy(x => x.Credit).ToList();
-                            break;
-                        case "credit_dsc":
-                            Course = Course.OrderByDescending(x => x.Credit).ToList();
-                            break;
-                    }
-                }
-                else
-                {
-                    Course = Course.ToList();
-                }
-
-
-                return Course.ToList();
-            }
-        }
-
-        //Update Course
-        public void UpdateCourse(Course newCourse)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(newCourse).State = EntityState.Modified;
-                dataContext.SaveChanges();
-            }
-        }
-
-        //Delete Course
-        public void RemoveCourse(Course courseToBeDeleted)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(courseToBeDeleted).State = EntityState.Deleted;
-                dataContext.SaveChanges();
-            }
-        }
+    //Delete Course
+    public async Task RemoveCourseAsync(Course course)
+    {
+        dataContext.Courses.Remove(course);
+        await dataContext.SaveChangesAsync();
     }
 }

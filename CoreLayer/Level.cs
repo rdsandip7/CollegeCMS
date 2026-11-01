@@ -1,27 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace CoreLayer;
 
-namespace CoreLayer
+public class Level
 {
-    public class Level
-    {
-        public Level()
-        {
-            Students = new List<Student>();
-            Courses = new List<Course>();
-        }
+    public int LevelId { get; set; }
+    public int Year { get; set; }
+    public string Semester { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime? InsertedDate { get; set; }
+    public DateTime? UpdatedDate { get; set; }
 
-        public int LevelId { get; set; }
-        public DateTime Year { get; set; }
-        public string Semester { get; set; }
-        public string Description { get; set; }
-        public DateTime? InsertedDate { get; set; }
-        public DateTime? UpdatedDate { get; set; }
+    public ICollection<Student> Students { get; set; } = new List<Student>();
+    public ICollection<Course> Courses { get; set; } = new List<Course>();
 
-        public virtual ICollection<Student> Students { get; set; }
-        public virtual ICollection<Course> Courses { get; set; }
-    }
+    public string DisplayName => $"{Year} · {Semester}";
 }

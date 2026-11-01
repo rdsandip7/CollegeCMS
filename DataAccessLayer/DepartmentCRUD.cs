@@ -1,117 +1,66 @@
-﻿using CoreLayer;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using CoreLayer;
+using Microsoft.EntityFrameworkCore;
 
-namespace DataAccessLayer
+namespace DataAccessLayer;
+
+public class DepartmentCRUD(DataContext dataContext)
 {
-    public class DepartmentCRUD
+    private static readonly Dictionary<string, Expression<Func<Department, object?>>> SortColumns = new()
     {
-        //Create Department
-        public void SaveDepartment(Department department)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Departments.Add(department);
-                dataContext.SaveChanges();
-            }
-        } 
+        ["name"] = x => x.DepartmentName,
+        ["head"] = x => x.DepartmentHead,
+        ["established"] = x => x.EstablishedDate,
+    };
 
-        //Read Department
-        public Department GetDepartmentById(int deptId)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from department in dataContext.Departments
-                              where department.DepartmentId == deptId
-                              select department).First();
-                return result;
-            }
-        }
-        public Department GetDepartmentByName(string deptName)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from department in dataContext.Departments
-                              where department.DepartmentName == deptName
-                              select department).First();
-                return result;
-            }
-        }
+    //Create Department
+    public async Task SaveDepartmentAsync(Department department)
+    {
+        dataContext.Departments.Add(department);
+        await dataContext.SaveChangesAsync();
+    }
 
-        public List<Department> GetAllDepartments(string sortOrder, string searchString)
+    //Read Department
+    public Task<Department?> GetDepartmentByIdAsync(int deptId) =>
+        dataContext.Departments.FirstOrDefaultAsync(x => x.DepartmentId == deptId);
+
+    public Task<bool> DepartmentNameExistsAsync(string name, int? exceptId = null) =>
+        dataContext.Departments.AnyAsync(x => x.DepartmentName.ToLower() == name.ToLower() && x.DepartmentId != exceptId);
+
+    public Task<List<Department>> GetAllDepartmentsAsync() =>
+        dataContext.Departments.AsNoTracking().OrderBy(x => x.DepartmentName).ToListAsync();
+
+    public Task<PagedResult<Department>> GetDepartmentsAsync(ListQuery query)
+    {
+        IQueryable<Department> departments = dataContext.Departments.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            using (var dataContext = new DataContext())
-            {
-                IEnumerable<Department> Department = from department in dataContext.Departments select department;
-
-                if (!string.IsNullOrEmpty(searchString))
-                {
-                    Department = Department.Where(x => x.DepartmentName.ToLower().Contains(searchString.ToLower()) || x.DepartmentHead.ToLower().Contains(searchString.ToLower()) || x.Description.ToLower().Contains(searchString.ToLower()));
-
-                }
-                
-                if(!string.IsNullOrEmpty(sortOrder))
-                {
-                    switch(sortOrder)
-                    {
-                        case "name_asc":
-                            Department = Department.OrderBy(x => x.DepartmentName).ToList();
-                            break;
-                        case "name_desc":
-                            Department = Department.OrderByDescending(x => x.DepartmentName).ToList();
-                            break;
-                        case "description_asc":
-                            Department = Department.OrderBy(x => x.Description).ToList();
-                            break;
-                        case "description_dsc":
-                            Department = Department.OrderByDescending(x => x.Description).ToList();
-                            break;
-                        case "departmenthead_asc":
-                            Department = Department.OrderBy(x => x.DepartmentHead).ToList();
-                            break;
-                        case "departmenthead_dsc":
-                            Department = Department.OrderByDescending(x => x.DepartmentHead).ToList();
-                            break;
-                        case "estdate_asc":
-                            Department = Department.OrderBy(x => x.Description).ToList();
-                            break;
-                        case "estdate_dsc":
-                            Department = Department.OrderByDescending(x => x.Description).ToList();
-                            break;
-                    }
-                }
-                else
-                {
-                    Department = Department.ToList();
-                }
-                return Department.ToList();
-            }
+            var s = query.Search.Trim().ToLower();
+            departments = departments.Where(x => x.DepartmentName.ToLower().Contains(s)
+                || (x.DepartmentHead != null && x.DepartmentHead.ToLower().Contains(s))
+                || (x.Description != null && x.Description.ToLower().Contains(s)));
         }
 
-        //Update Department
-        public void UpdateDepartment(Department newDepartmentValue)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(newDepartmentValue).State = EntityState.Modified;
-                dataContext.SaveChanges();
-            }
-        }
+        return departments.ApplySort(query, SortColumns).ToPagedResultAsync(query);
+    }
 
-        //Delete Department
-        public void RemoveDepartment(Department departmentToBeDeleted)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(departmentToBeDeleted).State = EntityState.Deleted;
-                dataContext.SaveChanges();
-            }
-        }
+    public async Task<bool> HasDependentsAsync(int deptId) =>
+        await dataContext.Employees.AnyAsync(x => x.DepartmentId == deptId)
+        || await dataContext.Students.AnyAsync(x => x.DepartmentId == deptId)
+        || await dataContext.Courses.AnyAsync(x => x.DepartmentId == deptId);
 
-        
+    //Update Department
+    public async Task UpdateDepartmentAsync(Department department)
+    {
+        dataContext.Departments.Update(department);
+        await dataContext.SaveChangesAsync();
+    }
+
+    //Delete Department
+    public async Task RemoveDepartmentAsync(Department department)
+    {
+        dataContext.Departments.Remove(department);
+        await dataContext.SaveChangesAsync();
     }
 }

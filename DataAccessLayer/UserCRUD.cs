@@ -1,63 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Entity;
-using System.Threading.Tasks;
 using CoreLayer;
+using Microsoft.EntityFrameworkCore;
 
-namespace DataAccessLayer
+namespace DataAccessLayer;
+
+public class UserCRUD(DataContext dataContext)
 {
-    public class UserCRUD
+    //Create User
+    public async Task<int> SaveUserAsync(User user)
     {
-        //Create User
-        public int SaveUser(User user)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Users.Add(user);
-                return dataContext.SaveChanges();
-            }
-        }
-        
-        //Retrive User
-        public User GetUserByUserId(int userId)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from user in dataContext.Users where user.UserId == userId select user).First();
-                return result;
-            }
-        }
+        dataContext.Users.Add(user);
+        await dataContext.SaveChangesAsync();
+        return user.UserId;
+    }
 
-        public User GetUserByUsername(string username)
-        {
-            using (var dataContext = new DataContext())
-            {
-                var result = (from user in dataContext.Users where user.Username == username select user).FirstOrDefault();
-                return result;
-            }
-        }
+    //Retrieve User
+    public Task<User?> GetUserByUserIdAsync(int userId) =>
+        dataContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
 
+    public Task<User?> GetUserByUsernameAsync(string username) =>
+        dataContext.Users.FirstOrDefaultAsync(x => x.Username.ToLower() == username.ToLower());
 
-        public void UpdateUser(User newUser)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(newUser).State = EntityState.Modified;
-                dataContext.SaveChanges();
-            }
-        }
-
-        //Delete User
-        public void RemoveUser(User userToBeDeleted)
-        {
-            using (var dataContext = new DataContext())
-            {
-                dataContext.Entry(userToBeDeleted).State = EntityState.Deleted;
-                dataContext.SaveChanges();
-            }
-        }
-
+    public async Task UpdateUserAsync(User user)
+    {
+        dataContext.Users.Update(user);
+        await dataContext.SaveChangesAsync();
     }
 }

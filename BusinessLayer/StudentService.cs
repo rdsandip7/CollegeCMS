@@ -1,75 +1,100 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CoreLayer;
 using DataAccessLayer;
 
-namespace BusinessLayer
+namespace BusinessLayer;
+
+public class StudentService(StudentCRUD studentTableActions, EnrollmentCRUD enrollmentTableActions, CourseCRUD courseTableActions)
 {
-    public class StudentService
+    public Task<PagedResult<Student>> GetStudentsAsync(ListQuery query) => studentTableActions.GetStudentsAsync(query);
+
+    public Task<Student?> GetStudentByIdAsync(string studentId) => studentTableActions.GetStudentByIdAsync(studentId);
+
+    /// <summary>Saves a new student and returns the generated id (e.g. STU-2026-0007).</summary>
+    public async Task<string> SaveStudentAsync(Student student)
     {
-         StudentCRUD studentTableActions;
-         StudentPersonalInfoCRUD studentpersonalinfoTableActions;
+        student.StudentId = await GenerateStudentIdAsync(student.PersonalInfo.AdmissionDate.Year);
+        student.PersonalInfo.StudentId = student.StudentId;
+        student.InsertedDate = DateTime.Now;
+        student.PersonalInfo.InsertedDate = DateTime.Now;
+        await studentTableActions.SaveStudentAsync(student);
+        return student.StudentId;
+    }
 
-         public StudentService()
-        {
-            studentTableActions = new StudentCRUD();
-            studentpersonalinfoTableActions = new StudentPersonalInfoCRUD();
-        }
+    public async Task<OperationResult> UpdateStudentAsync(Student changes)
+    {
+        var student = await studentTableActions.GetStudentByIdAsync(changes.StudentId);
+        if (student is null)
+            return OperationResult.Fail("Student not found.");
 
-        public void SaveStudent(Student studentData)
-        {
-            studentTableActions.SaveStudent(studentData);
-        }
-       
-        public Student GetStudentById(string StudentId)
-        {
-            return studentTableActions.GetStudentById(StudentId);
-        }
+        student.FirstName = changes.FirstName;
+        student.MiddleName = changes.MiddleName;
+        student.LastName = changes.LastName;
+        student.DepartmentId = changes.DepartmentId;
+        student.LevelId = changes.LevelId;
+        student.UpdatedDate = DateTime.Now;
 
-        public StudentPersonalInfo GetStudentPersonalInfo(string StudentId)
-        {
-            return studentpersonalinfoTableActions.GetStudentPersonalInfo(StudentId);
-        }
-        public Student GetStudentByName(string Name)
-        {
-            return studentTableActions.GetStudentByName(Name);
-        }
-        public void UpdateStudent(Student dataTobeUpdated)
-        {
-            studentTableActions.UpdateStudent(dataTobeUpdated);
-        }
-        
-        public void RemoveStudent(Student dataTobeDeleted)
-        {
-            studentTableActions.RemoveStudent(dataTobeDeleted);
-        }
-        public void DeleteStudent(string StudentId)
-        {
-            Student studentToBeDeleted = studentTableActions.GetStudentById(StudentId);
-            studentTableActions.RemoveStudent(studentToBeDeleted);
-        }
+        var info = student.PersonalInfo;
+        var newInfo = changes.PersonalInfo;
+        info.Gender = newInfo.Gender;
+        info.DateOfBirth = newInfo.DateOfBirth;
+        info.CitizenshipNumber = newInfo.CitizenshipNumber;
+        info.Email = newInfo.Email;
+        info.Address = newInfo.Address;
+        info.ContactNumber = newInfo.ContactNumber;
+        info.GuardianName = newInfo.GuardianName;
+        info.GuardianRelationship = newInfo.GuardianRelationship;
+        info.GuardianContactNumber = newInfo.GuardianContactNumber;
+        info.AdmissionDate = newInfo.AdmissionDate;
+        info.UpdatedDate = DateTime.Now;
 
+        await studentTableActions.UpdateStudentAsync(student);
+        return OperationResult.Success;
+    }
 
-        public void RemoveStudentPersonalInfo(StudentPersonalInfo dataTobeDeleted)
-        {
-            studentpersonalinfoTableActions.RemoveStudentPersonalInfo(dataTobeDeleted);
-        }
-        public void DeleteStudentPersonalInfo(string StudentId)
-        {
-            StudentPersonalInfo studentToBeDeleted = studentpersonalinfoTableActions.GetStudentPersonalInfo(StudentId);
-            studentpersonalinfoTableActions.RemoveStudentPersonalInfo(studentToBeDeleted);
-        }
+    public async Task<OperationResult> DeleteStudentAsync(string studentId)
+    {
+        var student = await studentTableActions.GetStudentByIdAsync(studentId);
+        if (student is null)
+            return OperationResult.Fail("Student not found.");
 
-        public IList<Student> GetAllStudents(string sortOrder, string searchString)
+        await studentTableActions.RemoveStudentAsync(student);
+        return OperationResult.Success;
+    }
+
+    public async Task<OperationResult> EnrollAsync(string studentId, int courseId)
+    {
+        if (await studentTableActions.GetStudentByIdAsync(studentId) is null)
+            return OperationResult.Fail("Student not found.");
+        if (await courseTableActions.GetCourseByIdAsync(courseId) is null)
+            return OperationResult.Fail("Course not found.");
+        if (await enrollmentTableActions.IsEnrolledAsync(studentId, courseId))
+            return OperationResult.Fail("The student is already enrolled in this course.");
+
+        await enrollmentTableActions.SaveEnrollmentAsync(new Enrollment
         {
-            return studentTableActions.GetAllStudents(sortOrder, searchString);
-        }
-        public IList<StudentPersonalInfo> GetAllStudentPersonalInfo(string sortOrder, string searchString)
-        {
-            return studentpersonalinfoTableActions.GetAllStudentPersonalInfo(sortOrder, searchString);
-        }
+            StudentId = studentId,
+            CourseId = courseId,
+            EnrolledDate = DateTime.Today,
+            InsertedDate = DateTime.Now,
+        });
+        return OperationResult.Success;
+    }
+
+    public async Task<OperationResult> UnenrollAsync(int enrollmentId)
+    {
+        var enrollment = await enrollmentTableActions.GetEnrollmentAsync(enrollmentId);
+        if (enrollment is null)
+            return OperationResult.Fail("Enrollment not found.");
+
+        await enrollmentTableActions.RemoveEnrollmentAsync(enrollment);
+        return OperationResult.Success;
+    }
+
+    private async Task<string> GenerateStudentIdAsync(int admissionYear)
+    {
+        var prefix = $"STU-{admissionYear}-";
+        var last = await studentTableActions.GetLastStudentIdAsync(prefix);
+        var next = last is not null && int.TryParse(last[prefix.Length..], out var n) ? n + 1 : 1;
+        return $"{prefix}{next:D4}";
     }
 }

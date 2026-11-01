@@ -1,0 +1,9 @@
+@model StudentViewModel
+@{
+    ViewData["Title"] = "Admit a student";
+    ViewData["SubmitLabel"] = "Admit student";
+}
+<partial name="_FormHeader" />
+<p class="text-body-secondary">A student ID such as <code>STU-@DateTime.Today.Year-0001</code> is generated automatically from the admission year.</p>
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

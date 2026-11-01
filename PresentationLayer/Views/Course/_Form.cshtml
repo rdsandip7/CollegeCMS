@@ -1,0 +1,46 @@
+@model CourseViewModel
+<form method="post" class="card form-card">
+    <div class="card-body p-4">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger empty-hidden"></div>
+        <div class="row g-3">
+            <div class="col-12">
+                <label asp-for="CourseName" class="form-label"></label>
+                <input asp-for="CourseName" class="form-control" autofocus />
+                <span asp-validation-for="CourseName" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="DepartmentId" class="form-label"></label>
+                <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select">
+                    <option value="">Choose a department…</option>
+                </select>
+                <span asp-validation-for="DepartmentId" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="LevelId" class="form-label"></label>
+                <select asp-for="LevelId" asp-items="Model.Levels" class="form-select">
+                    <option value="">Choose a level…</option>
+                </select>
+                <span asp-validation-for="LevelId" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Duration" class="form-label"></label>
+                <input asp-for="Duration" class="form-control" placeholder="e.g. 16 weeks" />
+                <span asp-validation-for="Duration" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Credit" class="form-label"></label>
+                <input asp-for="Credit" class="form-control" />
+                <span asp-validation-for="Credit" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="invalid-feedback d-block"></span>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+        <button type="submit" class="btn btn-primary">@ViewData["SubmitLabel"]</button>
+    </div>
+</form>

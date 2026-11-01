@@ -1,0 +1,8 @@
+@model LevelViewModel
+@{
+    ViewData["Title"] = "New level";
+    ViewData["SubmitLabel"] = "Create level";
+}
+<partial name="_FormHeader" />
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
