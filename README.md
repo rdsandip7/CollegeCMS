@@ -30,13 +30,24 @@ Each layer only references the one below it; the web project registers everythin
 
 ## Getting started
 
-Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No database server is needed: the SQLite database is created and filled with demo data on first run.
+No database server is needed: the SQLite database is created and filled with demo data on first run.
+
+### Visual Studio 2026
+
+1. Open `CollegeCMS.sln`. `PresentationLayer` is the startup project.
+2. Press **F5** (or the green ▶ **http** button). The browser opens on the college home page.
+
+Visual Studio 2022 cannot build .NET 10 projects; use Visual Studio 2026 (the free Community edition works) or the command line below.
+
+### Command line / VS Code
+
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 
 ```bash
 dotnet run --project PresentationLayer
 ```
 
-Open http://localhost:5080 and sign in with the demo administrator from `PresentationLayer/appsettings.json` (`DemoAdmin` section). Change those values before deploying anywhere public.
+Open http://localhost:5080. The home page describes the college; use **Sign in** at the top right and sign in with the demo administrator from `PresentationLayer/appsettings.json` (`DemoAdmin` section). Change those values before deploying anywhere public.
 
 Run the tests:
 

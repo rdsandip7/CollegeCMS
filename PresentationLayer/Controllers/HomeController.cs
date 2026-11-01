@@ -8,10 +8,7 @@ namespace PresentationLayer.Controllers;
 
 public class HomeController(DashboardService dashboardService) : Controller
 {
-    public IActionResult Index() =>
-        User.Identity?.IsAuthenticated == true ? RedirectToAction(nameof(Dashboard)) : View();
-
-    public IActionResult About() => View(nameof(Index));
+    public IActionResult Index() => View();
 
     [Authorize]
     public async Task<IActionResult> Dashboard()

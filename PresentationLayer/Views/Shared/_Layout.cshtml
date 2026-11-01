@@ -23,7 +23,9 @@
 <body>
     @{
         var controller = ViewContext.RouteData.Values["controller"] as string;
-        string Active(string name) => controller == name ? "active" : "";
+        var action = ViewContext.RouteData.Values["action"] as string;
+        string Active(string name) => controller == name && !(name == "Home" && action == "Index") ? "active" : "";
+        string HomeActive() => controller == "Home" && action == "Index" ? "active" : "";
         var signedIn = User.Identity?.IsAuthenticated == true;
     }
     <nav class="navbar navbar-expand-lg app-navbar sticky-top">
@@ -40,6 +42,7 @@
                 @if (signedIn)
                 {
                     <ul class="navbar-nav me-auto">
+                        <li class="nav-item"><a class="nav-link @HomeActive()" asp-controller="Home" asp-action="Index"><i class="bi bi-house"></i> Home</a></li>
                         <li class="nav-item"><a class="nav-link @Active("Home")" asp-controller="Home" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
                         <li class="nav-item"><a class="nav-link @Active("Student")" asp-controller="Student" asp-action="Index"><i class="bi bi-people"></i> Students</a></li>
                         <li class="nav-item"><a class="nav-link @Active("Employee")" asp-controller="Employee" asp-action="Index"><i class="bi bi-person-badge"></i> Employees</a></li>
@@ -51,7 +54,7 @@
                 else
                 {
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="nav-item"><a class="nav-link @HomeActive()" asp-controller="Home" asp-action="Index"><i class="bi bi-house"></i> Home</a></li>
                     </ul>
                 }
                 <div class="d-flex align-items-center gap-2">
