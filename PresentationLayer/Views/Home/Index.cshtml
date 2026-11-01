@@ -1,47 +1,175 @@
+@model HomeViewModel
 @{
-    ViewData["Title"] = "Welcome";
+    ViewData["Title"] = "Mtech College";
+    var s = Model.Statistics;
+    var today = DateTime.Today;
+    var nextIntake = today.Month >= 2 ? today.Year + 1 : today.Year;
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var founded = Model.Programmes.Select(p => p.Established?.Year).Where(y => y is not null).DefaultIfEmpty(2000).Min() ?? 2000;
+
+    string Icon(string name) => name switch
+    {
+        var n when n.Contains("Computer") => "bi-cpu",
+        var n when n.Contains("Civil") => "bi-bricks",
+        var n when n.Contains("Electrical") => "bi-lightning-charge",
+        var n when n.Contains("IT") => "bi-code-slash",
+        _ => "bi-mortarboard",
+    };
+    string Degree(string name) => name.StartsWith("BSc") ? "Bachelor of Science · 4 years" : "Bachelor of Engineering · 4 years";
 }
-<section class="hero">
-    <div class="row align-items-center g-5">
-        <div class="col-lg-6">
-            <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis mb-3">Mtech College · Kathmandu</span>
-            <h1 class="display-5 fw-bold mb-3">Run your college from one place.</h1>
-            <p class="lead text-body-secondary mb-4">
-                College CMS keeps departments, semesters, courses, students and staff together,
-                with search, sorting and enrollment tracking built in.
-            </p>
-            <div class="d-flex flex-wrap gap-2">
-                @if (User.Identity?.IsAuthenticated == true)
-                {
-                    <a class="btn btn-primary btn-lg" asp-action="Dashboard">Open dashboard <i class="bi bi-arrow-right"></i></a>
-                }
-                else
-                {
-                    <a class="btn btn-primary btn-lg" asp-controller="User" asp-action="Login">Sign in <i class="bi bi-arrow-right"></i></a>
-                    <a class="btn btn-outline-secondary btn-lg" asp-controller="User" asp-action="Register">Create an account</a>
-                }
+
+<section class="site-hero">
+    <span class="hero-badge mb-4"><i class="bi bi-megaphone"></i> Admissions open for the @nextIntake intake</span>
+    <h1 class="display-5 fw-bold mb-3">Engineering and IT education<br class="d-none d-md-inline" /> in the heart of Kathmandu.</h1>
+    <p class="lead mb-4">
+        Mtech College has prepared engineers and technologists since @founded, with four undergraduate
+        programmes, hands-on labs and faculty who know their students by name.
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-lg btn-hero-light" href="#programmes">Explore programmes</a>
+        @if (signedIn)
+        {
+            <a class="btn btn-lg btn-hero-outline" asp-action="Dashboard"><i class="bi bi-speedometer2"></i> Open dashboard</a>
+        }
+        else
+        {
+            <a class="btn btn-lg btn-hero-outline" asp-controller="User" asp-action="Login"><i class="bi bi-box-arrow-in-right"></i> Staff sign in</a>
+        }
+    </div>
+</section>
+
+<div class="stat-strip">
+    <div><strong>@s.Students.ToString("N0")</strong><span>Students enrolled</span></div>
+    <div><strong>@s.Faculty</strong><span>Teaching faculty</span></div>
+    <div><strong>@s.Programmes</strong><span>Degree programmes</span></div>
+    <div><strong>@(today.Year - founded)+</strong><span>Years of teaching</span></div>
+</div>
+
+<section class="section" id="programmes">
+    <h2 class="section-title">Our programmes</h2>
+    <p class="section-lead">Four-year undergraduate degrees run on a semester system, with continuous assessment, lab work and a final-year project.</p>
+    <div class="row g-3">
+        @foreach (var p in Model.Programmes)
+        {
+            <div class="col-md-6 col-xl-3">
+                <article class="programme-card">
+                    <i class="bi @Icon(p.Department)"></i>
+                    <h3>@p.Department</h3>
+                    <div class="small text-body-secondary mb-2">@Degree(p.Department)</div>
+                    <p>@p.Description</p>
+                    <div class="programme-facts">
+                        <span><strong>@p.Students</strong> students</span>
+                        <span><strong>@p.Courses</strong> courses</span>
+                        <span>Since <strong>@p.Established?.Year</strong></span>
+                    </div>
+                </article>
             </div>
+        }
+    </div>
+</section>
+
+<section class="section">
+    <div class="row g-4 g-lg-5">
+        <div class="col-lg-6">
+            <h2 class="section-title">About Mtech College</h2>
+            <p class="text-body-secondary">
+                “Mtech College” is one of the renowned colleges in Kathmandu Valley. It was established in @founded A.D.
+                and has been providing quality education ever since, which shows in the effort students put into their projects.
+            </p>
+            <p class="text-body-secondary">
+                Civil Engineering, Computer Engineering and Electrical Engineering are offered to students who studied
+                Science at the intermediate level. BSc. IT is for technology enthusiasts from any intermediate stream.
+            </p>
+            <ul class="check-list mt-4">
+                <li><i class="bi bi-check-circle-fill"></i><span><strong>Shared engineering foundation.</strong> First-year mathematics, physics, chemistry and drawing are taught by the Science &amp; Humanities department.</span></li>
+                <li><i class="bi bi-check-circle-fill"></i><span><strong>Labs and field work.</strong> Computing, electronics, power and surveying labs, plus a survey camp for civil students.</span></li>
+                <li><i class="bi bi-check-circle-fill"></i><span><strong>Project-based final year.</strong> Every student completes a two-semester major project or internship.</span></li>
+                <li><i class="bi bi-check-circle-fill"></i><span><strong>Small classes.</strong> @s.Faculty teaching staff for @s.Students.ToString("N0") students.</span></li>
+            </ul>
         </div>
         <div class="col-lg-6">
-            <div class="feature-grid">
-                <div class="feature-card"><i class="bi bi-people"></i><h3>Students</h3><p>Admissions with auto-generated IDs, guardian details and course enrollment.</p></div>
-                <div class="feature-card"><i class="bi bi-person-badge"></i><h3>Employees</h3><p>Staff records with positions, hire dates and linked user accounts.</p></div>
-                <div class="feature-card"><i class="bi bi-journal-bookmark"></i><h3>Courses</h3><p>Credits and duration, organised by department and semester.</p></div>
-                <div class="feature-card"><i class="bi bi-shield-lock"></i><h3>Secure</h3><p>Hashed passwords, role-based access and anti-forgery protection.</p></div>
+            <div class="card h-100">
+                <div class="card-body p-4">
+                    <h3 class="h5 mb-4">Milestones</h3>
+                    <ol class="timeline">
+                        @foreach (var p in Model.Programmes.Where(p => p.Established is not null).OrderBy(p => p.Established))
+                        {
+                            <li>
+                                <time>@p.Established!.Value.Year</time>
+                                <div class="fw-medium">@p.Department programme launched</div>
+                                <div class="small text-body-secondary">Headed today by @p.Head</div>
+                            </li>
+                        }
+                        <li>
+                            <time>@today.Year</time>
+                            <div class="fw-medium">@s.Students.ToString("N0") students across @s.Programmes programmes</div>
+                            <div class="small text-body-secondary">@s.NewAdmissions new students joined this year</div>
+                        </li>
+                    </ol>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="about card">
-    <div class="card-body p-4 p-lg-5">
-        <h2 class="h4 mb-3">About Mtech College</h2>
-        <p class="mb-0 text-body-secondary">
-            “Mtech College” is one of the renowned colleges in Kathmandu Valley. It was established in 2000 A.D.
-            and has been providing quality education ever since, which shows in the effort students put into their projects.
-            The college offers four programmes: Civil Engineering, Computer Engineering and Electrical Engineering for
-            students who studied Science at the intermediate level, and BSc. IT for technology enthusiasts from any
-            intermediate stream.
-        </p>
+<section class="section">
+    <div class="cta-band d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h2 class="h4 fw-bold mb-1">Applying for the @nextIntake intake?</h2>
+            <p class="text-body-secondary mb-0">The admissions office is open Sunday to Friday, 10:00 – 16:00. Email <a href="mailto:admissions@mtech.edu.np">admissions@mtech.edu.np</a> for entrance dates and seat availability.</p>
+        </div>
+        <a class="btn btn-primary btn-lg" href="mailto:admissions@mtech.edu.np"><i class="bi bi-envelope"></i> Contact admissions</a>
     </div>
 </section>
+
+@section Footer {
+    <footer class="site-footer">
+        <div class="container-xl">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <a class="navbar-brand d-flex align-items-center gap-2 mb-3 text-body" asp-action="Index">
+                        <span class="brand-mark"><i class="bi bi-mortarboard-fill"></i></span>
+                        <span>Mtech <strong>College</strong></span>
+                    </a>
+                    <p class="mb-0">Engineering and information technology education in Kathmandu since @founded.</p>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <h4>Programmes</h4>
+                    <ul>
+                        @foreach (var p in Model.Programmes)
+                        {
+                            <li><a href="#programmes">@p.Department</a></li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <h4>Portal</h4>
+                    <ul>
+                        @if (signedIn)
+                        {
+                            <li><a asp-action="Dashboard">Dashboard</a></li>
+                            <li><a asp-controller="Student" asp-action="Index">Students</a></li>
+                        }
+                        else
+                        {
+                            <li><a asp-controller="User" asp-action="Login">Staff sign in</a></li>
+                            <li><a asp-controller="User" asp-action="Register">Create account</a></li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><i class="bi bi-geo-alt"></i> Baneshwor, Kathmandu, Nepal</li>
+                        <li><i class="bi bi-envelope"></i> <a href="mailto:info@mtech.edu.np">info@mtech.edu.np</a></li>
+                        <li><i class="bi bi-clock"></i> Sun – Fri, 10:00 – 16:00</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between gap-2 border-top pt-3 mt-3 small">
+                <span>&copy; @today.Year Mtech College</span>
+                <span>College CMS · ASP.NET Core 10</span>
+            </div>
+        </div>
+    </footer>
+}

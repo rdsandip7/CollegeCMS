@@ -1,9 +1,9 @@
 @model PagedResult<Level>
 @{
     ViewData["Title"] = "Levels";
-    ViewData["Subtitle"] = "Academic years and semesters.";
+    ViewData["Subtitle"] = "The eight semesters of every four-year programme.";
     ViewData["CreateLabel"] = "New level";
-    ViewData["SearchPlaceholder"] = "Search by year, semester or description";
+    ViewData["SearchPlaceholder"] = "Search by semester or description";
 }
 <partial name="_ListHeader" />
 <div class="card">
@@ -11,7 +11,7 @@
         <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>
-                    <th sort="year">Year</th>
+                    <th sort="year">Programme year</th>
                     <th sort="semester">Semester</th>
                     <th sort="description">Description</th>
                     <th class="text-end">Actions</th>
@@ -21,8 +21,8 @@
                 @foreach (var item in Model.Items)
                 {
                     <tr>
-                        <td class="tabular fw-medium">@item.Year</td>
-                        <td>@item.Semester</td>
+                        <td class="tabular">Year @item.Year</td>
+                        <td class="fw-medium">@item.Semester</td>
                         <td class="text-body-secondary">@item.Description</td>
                         <td class="text-end text-nowrap">
                             <a class="btn btn-sm btn-ghost" asp-action="Edit" asp-route-id="@item.LevelId" title="Edit"><i class="bi bi-pencil"></i></a>

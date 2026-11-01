@@ -10,7 +10,7 @@ public class CourseCRUD(DataContext dataContext)
     {
         ["name"] = x => x.CourseName,
         ["department"] = x => x.Department!.DepartmentName,
-        ["level"] = x => x.Level!.Year,
+        ["level"] = x => x.LevelId,
         ["duration"] = x => x.Duration,
         ["credit"] = x => x.Credit,
     };
@@ -30,7 +30,7 @@ public class CourseCRUD(DataContext dataContext)
             .FirstOrDefaultAsync(x => x.CourseId == courseId);
 
     public Task<List<Course>> GetAllCoursesAsync() =>
-        dataContext.Courses.AsNoTracking().Include(x => x.Level).OrderBy(x => x.CourseName).ToListAsync();
+        dataContext.Courses.AsNoTracking().Include(x => x.Level).Include(x => x.Department).OrderBy(x => x.LevelId).ThenBy(x => x.CourseName).ToListAsync();
 
     public Task<PagedResult<Course>> GetCoursesAsync(ListQuery query)
     {

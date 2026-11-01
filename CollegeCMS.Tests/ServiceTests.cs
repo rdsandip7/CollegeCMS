@@ -1,32 +1,63 @@
 using CoreLayer;
+using Microsoft.EntityFrameworkCore;
 
 namespace CollegeCMS.Tests;
 
 public class ServiceTests
 {
     [Fact]
-    public async Task New_students_get_sequential_ids_for_their_admission_year()
+    public async Task Seeded_college_has_realistic_size_and_shape()
     {
         await using var db = await TestDatabase.CreateAsync();
-        var level = (await db.Levels.GetAllLevelsAsync())[0];
-        var department = (await db.Departments.GetAllDepartmentsAsync())[0];
+        var context = db.Context;
 
-        // The seed data already holds STU-2026-0001 … 0006.
-        var first = await db.Students.SaveStudentAsync(NewStudent(department.DepartmentId, level.LevelId, 2026));
-        var second = await db.Students.SaveStudentAsync(NewStudent(department.DepartmentId, level.LevelId, 2026));
-        var otherYear = await db.Students.SaveStudentAsync(NewStudent(department.DepartmentId, level.LevelId, 2027));
+        Assert.InRange(await context.Students.CountAsync(), 550, 750);
+        Assert.InRange(await context.Employees.CountAsync(), 70, 110);
+        Assert.Equal(160, await context.Courses.CountAsync());
+        Assert.Equal(8, await context.Levels.CountAsync());
+        Assert.Equal(4, await context.Departments.CountAsync(d => d.Students.Any()));
 
-        Assert.Equal("STU-2026-0007", first);
-        Assert.Equal("STU-2026-0008", second);
-        Assert.Equal("STU-2027-0001", otherYear);
-        Assert.NotNull((await db.Students.GetStudentByIdAsync(first))?.PersonalInfo);
+        // Every student is enrolled in their current semester's courses, and every department has a head.
+        Assert.False(await context.Students.AnyAsync(s => !s.Enrollments.Any()));
+        Assert.False(await context.Departments.AnyAsync(d => d.DepartmentHead == null));
+        Assert.False(await context.Enrollments.AnyAsync(e => e.Course!.LevelId != e.Student!.LevelId));
+    }
+
+    [Fact]
+    public async Task Seed_data_is_the_same_every_time()
+    {
+        await using var first = await TestDatabase.CreateAsync();
+        await using var second = await TestDatabase.CreateAsync();
+
+        var a = await first.Context.Students.OrderBy(s => s.StudentId).Select(s => s.StudentId + s.FirstName + s.LastName).Take(50).ToListAsync();
+        var b = await second.Context.Students.OrderBy(s => s.StudentId).Select(s => s.StudentId + s.FirstName + s.LastName).Take(50).ToListAsync();
+
+        Assert.Equal(a, b);
+    }
+
+    [Fact]
+    public async Task New_students_get_the_next_id_for_their_admission_year()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var student = await db.Context.Students.Include(s => s.PersonalInfo).OrderByDescending(s => s.StudentId).FirstAsync();
+        var intake = student.PersonalInfo.AdmissionDate.Year;
+        var lastNumber = int.Parse(student.StudentId[^4..]);
+
+        var next = await db.Students.SaveStudentAsync(NewStudent(student.DepartmentId, student.LevelId, intake));
+        var future1 = await db.Students.SaveStudentAsync(NewStudent(student.DepartmentId, student.LevelId, 2099));
+        var future2 = await db.Students.SaveStudentAsync(NewStudent(student.DepartmentId, student.LevelId, 2099));
+
+        Assert.Equal($"STU-{intake}-{lastNumber + 1:D4}", next);
+        Assert.Equal("STU-2099-0001", future1);
+        Assert.Equal("STU-2099-0002", future2);
+        Assert.NotNull((await db.Students.GetStudentByIdAsync(next))?.PersonalInfo);
     }
 
     [Fact]
     public async Task Department_with_students_cannot_be_deleted()
     {
         await using var db = await TestDatabase.CreateAsync();
-        var department = (await db.Departments.GetAllDepartmentsAsync())[0];
+        var department = await db.Context.Departments.FirstAsync(d => d.DepartmentName == "Computer Engineering");
 
         var result = await db.Departments.DeleteDepartmentAsync(department.DepartmentId);
 
@@ -58,56 +89,61 @@ public class ServiceTests
     }
 
     [Fact]
-    public async Task Course_list_supports_search_sort_and_paging()
+    public async Task Course_list_supports_search_and_sort()
     {
         await using var db = await TestDatabase.CreateAsync();
 
-        var computer = await db.Courses.GetCoursesAsync(new ListQuery(Search: "computer", Sort: "name_desc"));
-        Assert.Equal(3, computer.TotalCount);
-        Assert.Equal("Programming in C", computer.Items[0].CourseName);
-        Assert.All(computer.Items, c => Assert.Equal("Computer Engineering", c.Department!.DepartmentName));
+        var result = await db.Courses.GetCoursesAsync(new ListQuery(Search: "structures", Sort: "name_desc", PageSize: 50));
 
-        var page2 = await db.Courses.GetCoursesAsync(new ListQuery(Sort: "credit", Page: 2, PageSize: 3));
-        Assert.Equal(2, page2.PageNumber);
-        Assert.Equal(3, page2.PageCount);
-        Assert.Equal(3, page2.Items.Count);
+        Assert.NotEmpty(result.Items);
+        Assert.All(result.Items, c => Assert.True(
+            c.CourseName.Contains("Structures", StringComparison.OrdinalIgnoreCase)
+            || (c.Description ?? "").Contains("structures", StringComparison.OrdinalIgnoreCase)
+            || c.Department!.DepartmentName.Contains("structures", StringComparison.OrdinalIgnoreCase)));
+        Assert.Equal(result.Items.Select(c => c.CourseName).OrderDescending(StringComparer.Ordinal), result.Items.Select(c => c.CourseName));
     }
 
     [Fact]
-    public async Task Paging_past_the_end_returns_the_last_page()
+    public async Task Paging_returns_full_pages_and_clamps_past_the_end()
     {
         await using var db = await TestDatabase.CreateAsync();
 
-        var result = await db.Students.GetStudentsAsync(new ListQuery(Page: 99, PageSize: 4));
+        var page2 = await db.Students.GetStudentsAsync(new ListQuery(Page: 2, PageSize: 15));
+        var beyond = await db.Students.GetStudentsAsync(new ListQuery(Page: 999, PageSize: 15));
 
-        Assert.Equal(2, result.PageNumber);
-        Assert.Equal(2, result.Items.Count);
+        Assert.Equal(15, page2.Items.Count);
+        Assert.Equal((int)Math.Ceiling(page2.TotalCount / 15.0), page2.PageCount);
+        Assert.Equal(page2.PageCount, beyond.PageNumber);
+        Assert.InRange(beyond.Items.Count, 1, 15);
     }
 
     [Fact]
     public async Task Enrolling_twice_in_the_same_course_is_refused()
     {
         await using var db = await TestDatabase.CreateAsync();
-        var course = (await db.Courses.GetAllCoursesAsync()).Single(c => c.CourseName == "Web Technology");
+        var enrollment = await db.Context.Enrollments.FirstAsync();
+        var otherCourse = await db.Context.Courses.FirstAsync(c => !c.Enrollments.Any(e => e.StudentId == enrollment.StudentId));
 
-        Assert.True((await db.Students.EnrollAsync("STU-2026-0001", course.CourseId)).Succeeded);
-        Assert.False((await db.Students.EnrollAsync("STU-2026-0001", course.CourseId)).Succeeded);
+        Assert.False((await db.Students.EnrollAsync(enrollment.StudentId, enrollment.CourseId)).Succeeded);
+        Assert.True((await db.Students.EnrollAsync(enrollment.StudentId, otherCourse.CourseId)).Succeeded);
+        Assert.False((await db.Students.EnrollAsync(enrollment.StudentId, otherCourse.CourseId)).Succeeded);
     }
 
     [Fact]
     public async Task Registered_users_can_sign_in_and_get_linked_to_their_employee_record()
     {
         await using var db = await TestDatabase.CreateAsync();
+        var employee = await db.Context.Employees.OrderBy(e => e.EmployeeId).FirstAsync();
 
-        var result = await db.Users.RegisterAsync("gita", "s3cret-pass", "GITA.RAI@mtech.edu.np");
+        var result = await db.Users.RegisterAsync("staff.member", "s3cret-pass", employee.Email.ToUpperInvariant());
 
         Assert.True(result.Succeeded);
-        Assert.NotNull(await db.Users.AuthenticateAsync("gita", "s3cret-pass"));
-        Assert.Null(await db.Users.AuthenticateAsync("gita", "wrong"));
-        Assert.False((await db.Users.RegisterAsync("GITA", "another-pass", "x@example.com")).Succeeded);
+        Assert.NotNull(await db.Users.AuthenticateAsync("staff.member", "s3cret-pass"));
+        Assert.Null(await db.Users.AuthenticateAsync("staff.member", "wrong"));
+        Assert.False((await db.Users.RegisterAsync("STAFF.MEMBER", "another-pass", "x@example.com")).Succeeded);
 
-        var employee = await db.Context.Employees.FindAsync(2);
-        Assert.NotNull(employee?.UserId);
+        await db.Context.Entry(employee).ReloadAsync();
+        Assert.NotNull(employee.UserId);
     }
 
     [Fact]

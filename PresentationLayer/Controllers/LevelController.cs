@@ -21,7 +21,7 @@ public class LevelController(LevelService levelService) : AppController
             return View(model);
 
         await levelService.SaveLevelAsync(model.ToEntity());
-        Flash($"Level \"{model.Year} · {model.Semester}\" was created.");
+        Flash($"Level \"{model.Semester}\" was created.");
         return RedirectToAction(nameof(Index));
     }
 

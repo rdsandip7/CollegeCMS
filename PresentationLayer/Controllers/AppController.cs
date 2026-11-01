@@ -7,7 +7,7 @@ namespace PresentationLayer.Controllers;
 /// <summary>Shared helpers for the list/create/edit/delete controllers.</summary>
 public abstract class AppController : Controller
 {
-    protected const int PageSize = 8;
+    protected const int PageSize = 15;
 
     protected ListQuery BuildListQuery(string? search, string? sort, int page)
     {

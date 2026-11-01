@@ -23,10 +23,21 @@ public class StudentController(
         if (student is null)
             return NotFound();
 
+        // Group the course picker by department, the student's own department first.
         var enrolledIds = student.Enrollments.Select(e => e.CourseId).ToHashSet();
+        var groups = new Dictionary<string, SelectListGroup>();
         ViewBag.AvailableCourses = (await courseService.GetAllCoursesAsync())
             .Where(c => !enrolledIds.Contains(c.CourseId))
-            .Select(c => new SelectListItem($"{c.CourseName} ({c.Level?.DisplayName})", c.CourseId.ToString()));
+            .OrderBy(c => c.DepartmentId == student.DepartmentId ? 0 : 1)
+            .ThenBy(c => c.Department?.DepartmentName)
+            .Select(c =>
+            {
+                var department = c.Department?.DepartmentName ?? "Other";
+                if (!groups.TryGetValue(department, out var group))
+                    groups[department] = group = new SelectListGroup { Name = department };
+                return new SelectListItem($"{c.CourseName} ({c.Level?.DisplayName})", c.CourseId.ToString()) { Group = group };
+            })
+            .ToList();
         return View(student);
     }
 

@@ -8,15 +8,21 @@ namespace PresentationLayer.Controllers;
 
 public class HomeController(DashboardService dashboardService) : Controller
 {
-    public IActionResult Index() => View();
-
-    [Authorize]
-    public async Task<IActionResult> Dashboard()
+    public async Task<IActionResult> Index()
     {
         var statistics = await dashboardService.GetStatisticsAsync();
-        var departments = await dashboardService.GetDepartmentHeadcountsAsync();
-        return View(new DashboardViewModel(statistics, departments));
+        var programmes = (await dashboardService.GetDepartmentSummariesAsync()).Where(d => d.Students > 0).ToList();
+        return View(new HomeViewModel(statistics, programmes));
     }
+
+    [Authorize]
+    public async Task<IActionResult> Dashboard() => View(new DashboardViewModel(
+        await dashboardService.GetStatisticsAsync(),
+        await dashboardService.GetDepartmentSummariesAsync(),
+        await dashboardService.GetIntakeCountsAsync(),
+        await dashboardService.GetStaffByPositionAsync(),
+        await dashboardService.GetRecentAdmissionsAsync(),
+        await dashboardService.GetRecentHiresAsync()));
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error() =>

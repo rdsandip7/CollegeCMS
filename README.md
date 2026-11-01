@@ -6,7 +6,8 @@ Built with **ASP.NET Core 10 MVC**, **Entity Framework Core 10** and **SQLite**,
 
 ## Features
 
-- **Dashboard**: live counts and a per-department breakdown of students, staff and courses
+- **Public home page**: programmes, live college statistics, milestones and admissions contact
+- **Dashboard**: KPIs, students-by-intake chart, staff by role, recent admissions and hires, and a department overview with student-to-faculty ratios
 - **Students**: admission with auto-generated IDs (`STU-2026-0001`), personal and guardian details, and course enrollment
 - **Employees**: staff records with department, position, hire and resignation dates
 - **Courses, Departments, Levels**: full create/edit/delete with referential checks (a department that still has students can't be deleted)
@@ -15,6 +16,17 @@ Built with **ASP.NET Core 10 MVC**, **Entity Framework Core 10** and **SQLite**,
 - **Security**: anti-forgery tokens on every form, POST-only deletes, server-side and client-side validation
 - **Responsive UI**: Bootstrap 5 with light and dark themes
 - **Tests**: unit tests for the business rules plus integration tests that boot the real app
+
+## Sample data
+
+On first run the app generates a realistic college (from a fixed random seed, so it's the same every time):
+
+| | |
+|---|---|
+| Programmes | BE Computer, BE Civil, BE Electrical, BSc. IT, plus Science & Humanities and Administration departments |
+| Curriculum | 8 semesters, 160 courses; first-year engineering courses are shared and taught by Science & Humanities |
+| Students | ~640 across four February intake batches, each enrolled in their current semester's courses (~3,700 enrollments) |
+| Staff | ~90 employees with academic ranks from Professor to Lab Instructor, plus administrative roles |
 
 ## Architecture
 

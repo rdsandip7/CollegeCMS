@@ -12,5 +12,6 @@ public class Level
     public ICollection<Student> Students { get; set; } = new List<Student>();
     public ICollection<Course> Courses { get; set; } = new List<Course>();
 
-    public string DisplayName => $"{Year} · {Semester}";
+    /// <summary>Year is the programme year (1-4), so the semester name alone identifies the level.</summary>
+    public string DisplayName => Semester;
 }

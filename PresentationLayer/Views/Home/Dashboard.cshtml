@@ -2,51 +2,202 @@
 @{
     ViewData["Title"] = "Dashboard";
     var s = Model.Statistics;
-    var tiles = new[]
+    var today = DateTime.Today;
+    var evenSemester = today.Month is >= 8 or 1;
+    var session = evenSemester ? "Even semester · August – January" : "Odd semester · February – July";
+    var femaleShare = s.Students == 0 ? 0 : (int)Math.Round(s.FemaleStudents * 100.0 / s.Students);
+    var perStudent = s.Students == 0 ? 0 : s.Enrollments / (double)s.Students;
+
+    var years = Model.Intakes.Select(i => i.Year).Distinct().Order().ToList();
+    var programmes = Model.Intakes.Select(i => i.Department).Distinct().Order().ToList();
+    int Count(int year, string dept) => Model.Intakes.FirstOrDefault(i => i.Year == year && i.Department == dept)?.Students ?? 0;
+    var chartData = new
     {
-        (Label: "Students", Value: s.Students, Icon: "bi-people", Controller: "Student"),
-        (Label: "Employees", Value: s.Employees, Icon: "bi-person-badge", Controller: "Employee"),
-        (Label: "Courses", Value: s.Courses, Icon: "bi-journal-bookmark", Controller: "Course"),
-        (Label: "Departments", Value: s.Departments, Icon: "bi-building", Controller: "Department"),
-        (Label: "Levels", Value: s.Levels, Icon: "bi-layers", Controller: "Level"),
-        (Label: "Enrollments", Value: s.Enrollments, Icon: "bi-card-checklist", Controller: "Student"),
+        labels = years.Select(y => $"{y} intake"),
+        series = programmes.Select(p => new { name = p, values = years.Select(y => Count(y, p)) }),
     };
-    var maxStudents = Math.Max(1, Model.Departments.Select(d => d.Students).DefaultIfEmpty().Max());
+
+    var topPositions = Model.StaffByPosition.Take(7).ToList();
+    var otherStaff = Model.StaffByPosition.Skip(7).Sum(p => p.Count);
+    var maxPosition = Math.Max(1, Model.StaffByPosition.Select(p => p.Count).DefaultIfEmpty().Max());
 }
+
 <div class="page-header">
     <div>
-        <h1 class="h3 mb-1">Welcome back, @User.Identity?.Name</h1>
-        <p class="text-body-secondary mb-0">Here's how the college looks today.</p>
+        <p class="eyebrow mb-1">@today.ToString("dddd, d MMMM yyyy") · @session</p>
+        <h1 class="h3 mb-0">Welcome back, @User.Identity?.Name</h1>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
         <a class="btn btn-outline-primary" asp-controller="Employee" asp-action="Create"><i class="bi bi-person-plus"></i> Add employee</a>
         <a class="btn btn-primary" asp-controller="Student" asp-action="Create"><i class="bi bi-plus-lg"></i> Admit student</a>
     </div>
 </div>
 
-<div class="row g-3 mb-4">
-    @foreach (var tile in tiles)
-    {
-        <div class="col-6 col-md-4 col-xl-2">
-            <a class="stat-tile" asp-controller="@tile.Controller" asp-action="Index">
-                <i class="bi @tile.Icon"></i>
-                <div class="stat-value">@tile.Value</div>
-                <div class="stat-label">@tile.Label</div>
-            </a>
+<div class="row g-3 mb-3">
+    <div class="col-sm-6 col-xl-3">
+        <a class="kpi" asp-controller="Student" asp-action="Index">
+            <div class="kpi-head"><span>Students</span><i class="bi bi-people"></i></div>
+            <div class="kpi-value">@s.Students.ToString("N0")</div>
+            <div class="kpi-meta"><span class="text-success-emphasis fw-medium">+@s.NewAdmissions</span> this intake · @femaleShare% female</div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a class="kpi" asp-controller="Employee" asp-action="Index">
+            <div class="kpi-head"><span>Faculty</span><i class="bi bi-person-badge"></i></div>
+            <div class="kpi-value">@s.Faculty</div>
+            <div class="kpi-meta">@s.Staff active staff in @s.Departments departments</div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a class="kpi" asp-controller="Course" asp-action="Index">
+            <div class="kpi-head"><span>Courses</span><i class="bi bi-journal-bookmark"></i></div>
+            <div class="kpi-value">@s.Courses</div>
+            <div class="kpi-meta">across @s.Programmes degree programmes</div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a class="kpi" asp-controller="Student" asp-action="Index">
+            <div class="kpi-head"><span>Enrollments</span><i class="bi bi-card-checklist"></i></div>
+            <div class="kpi-value">@s.Enrollments.ToString("N0")</div>
+            <div class="kpi-meta">@perStudent.ToString("0.0") courses per student this semester</div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h2 class="h6 mb-0">Students by intake</h2>
+                    <small class="text-body-secondary">Current students, grouped by the year they were admitted</small>
+                </div>
+                <ul class="chart-legend" aria-hidden="true">
+                    @for (var i = 0; i < programmes.Count; i++)
+                    {
+                        <li><span class="swatch" style="background:var(--series-@(i + 1))"></span>@programmes[i]</li>
+                    }
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="chart-box"><canvas id="intakeChart" role="img" aria-label="Stacked bar chart of current students by intake year and programme"></canvas></div>
+                <script type="application/json" id="intakeData">@Json.Serialize(chartData)</script>
+                <details class="chart-table mt-2">
+                    <summary>View as table</summary>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0 mt-2">
+                            <thead><tr><th>Intake</th>@foreach (var p in programmes) { <th class="text-end">@p</th> }<th class="text-end">Total</th></tr></thead>
+                            <tbody>
+                                @foreach (var y in years)
+                                {
+                                    <tr>
+                                        <th>@y</th>
+                                        @foreach (var p in programmes) { <td class="text-end tabular">@Count(y, p)</td> }
+                                        <td class="text-end tabular fw-medium">@programmes.Sum(p => Count(y, p))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
         </div>
-    }
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-transparent">
+                <h2 class="h6 mb-0">Staff by role</h2>
+                <small class="text-body-secondary">@s.Staff active employees</small>
+            </div>
+            <ul class="card-body bar-list mb-0">
+                @foreach (var p in topPositions)
+                {
+                    <li>
+                        <div class="d-flex justify-content-between"><span>@p.Position</span><span class="tabular fw-medium">@p.Count</span></div>
+                        <div class="bar-track"><div class="bar-fill" style="width:@(p.Count * 100 / maxPosition)%"></div></div>
+                    </li>
+                }
+                @if (otherStaff > 0)
+                {
+                    <li>
+                        <div class="d-flex justify-content-between"><span>Other roles</span><span class="tabular fw-medium">@otherStaff</span></div>
+                        <div class="bar-track"><div class="bar-fill bar-fill-muted" style="width:@(Math.Min(100, otherStaff * 100 / maxPosition))%"></div></div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0">Recent admissions</h2>
+                <a class="small" asp-controller="Student" asp-action="Index" asp-route-sort="admission_desc">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Student</th><th>Programme</th><th>Level</th><th class="text-end">Admitted</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in Model.RecentAdmissions)
+                        {
+                            <tr>
+                                <td>
+                                    <a class="person-link" asp-controller="Student" asp-action="Details" asp-route-id="@r.StudentId">
+                                        <span class="avatar avatar-sm">@string.Concat(r.Name.Split(' ').Select(n => n[0]).Take(2))</span>
+                                        <span><span class="fw-medium d-block">@r.Name</span><code class="student-id">@r.StudentId</code></span>
+                                    </a>
+                                </td>
+                                <td>@r.Department</td>
+                                <td class="text-nowrap">@r.Level</td>
+                                <td class="text-end tabular text-nowrap">@r.AdmissionDate.ToString("dd MMM yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0">Recently joined staff</h2>
+                <a class="small" asp-controller="Employee" asp-action="Index" asp-route-sort="hired_desc">View all</a>
+            </div>
+            <ul class="list-group list-group-flush">
+                @foreach (var h in Model.RecentHires)
+                {
+                    <li class="list-group-item d-flex align-items-center gap-3">
+                        <span class="avatar avatar-sm">@string.Concat(h.Name.Split(' ').Select(n => n[0]).Take(2))</span>
+                        <div class="flex-grow-1 min-w-0">
+                            <a class="fw-medium text-reset text-decoration-none" asp-controller="Employee" asp-action="Details" asp-route-id="@h.EmployeeId">@h.Name</a>
+                            <div class="small text-body-secondary text-truncate">@h.Position · @h.Department</div>
+                        </div>
+                        <span class="small text-body-secondary text-nowrap tabular">@h.HiredDate.ToString("MMM yyyy")</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
 </div>
 
 <div class="card">
-    <div class="card-header bg-transparent"><h2 class="h6 mb-0">Departments at a glance</h2></div>
+    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+        <h2 class="h6 mb-0">Department overview</h2>
+        <a class="small" asp-controller="Department" asp-action="Index">Manage departments</a>
+    </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>
                     <th>Department</th>
-                    <th class="w-50">Students</th>
-                    <th class="text-end">Employees</th>
+                    <th>Head</th>
+                    <th class="text-end">Students</th>
+                    <th class="text-end">Faculty</th>
+                    <th class="text-end">All staff</th>
                     <th class="text-end">Courses</th>
+                    <th class="text-end">Students per faculty</th>
                 </tr>
             </thead>
             <tbody>
@@ -54,23 +205,20 @@
                 {
                     <tr>
                         <td class="fw-medium">@d.Department</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="progress flex-grow-1" role="progressbar" aria-label="@d.Department students" aria-valuenow="@d.Students" aria-valuemin="0" aria-valuemax="@maxStudents" style="height:.5rem">
-                                    <div class="progress-bar" style="width:@(d.Students * 100 / maxStudents)%"></div>
-                                </div>
-                                <span class="tabular">@d.Students</span>
-                            </div>
-                        </td>
-                        <td class="text-end tabular">@d.Employees</td>
+                        <td class="text-body-secondary">@d.Head</td>
+                        <td class="text-end tabular">@d.Students</td>
+                        <td class="text-end tabular">@d.Faculty</td>
+                        <td class="text-end tabular">@d.Staff</td>
                         <td class="text-end tabular">@d.Courses</td>
+                        <td class="text-end tabular">@(d.Students > 0 && d.Faculty > 0 ? $"{d.Students / (double)d.Faculty:0.0} : 1" : "—")</td>
                     </tr>
-                }
-                @if (Model.Departments.Count == 0)
-                {
-                    <partial name="_EmptyRow" model="4" />
                 }
             </tbody>
         </table>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+}

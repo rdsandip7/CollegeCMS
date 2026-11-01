@@ -18,7 +18,7 @@ public partial class WebAppTests : IClassFixture<WebAppTests.AppFactory>
         var response = await _factory.CreateClient().GetAsync("/");
 
         response.EnsureSuccessStatusCode();
-        Assert.Contains("Run your college from one place", await response.Content.ReadAsStringAsync());
+        Assert.Contains("Engineering and IT education", await response.Content.ReadAsStringAsync());
     }
 
     [Theory]
@@ -55,7 +55,7 @@ public partial class WebAppTests : IClassFixture<WebAppTests.AppFactory>
         login.EnsureSuccessStatusCode();
         Assert.Contains("Welcome back, admin", await login.Content.ReadAsStringAsync());
 
-        foreach (var url in new[] { "/Student", "/Employee", "/Course", "/Department", "/Level", "/Student/Details/STU-2026-0001", "/Course?sort=department_desc&search=eng" })
+        foreach (var url in new[] { "/Home/Dashboard", "/Student?page=20", "/Student", "/Employee", "/Course", "/Department", "/Level", $"/Student/Details/STU-{CurrentIntake}-0001", "/Course?sort=department_desc&search=eng" })
         {
             var response = await client.GetAsync(url);
             Assert.True(response.IsSuccessStatusCode, $"{url} returned {(int)response.StatusCode}");
@@ -69,6 +69,8 @@ public partial class WebAppTests : IClassFixture<WebAppTests.AppFactory>
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    private static int CurrentIntake => DateTime.Today.Month >= 2 ? DateTime.Today.Year : DateTime.Today.Year - 1;
 
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"")]
     private static partial Regex AntiforgeryToken();

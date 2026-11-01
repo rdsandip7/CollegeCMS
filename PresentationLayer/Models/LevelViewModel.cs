@@ -7,8 +7,9 @@ public class LevelViewModel
 {
     public int LevelId { get; set; }
 
-    [Required, Range(2000, 2100, ErrorMessage = "Enter a year between 2000 and 2100.")]
-    public int Year { get; set; } = DateTime.Today.Year;
+    [Required, Range(1, 6, ErrorMessage = "Enter a programme year between 1 and 6.")]
+    [Display(Name = "Programme year")]
+    public int Year { get; set; } = 1;
 
     [Required, StringLength(50)]
     public string Semester { get; set; } = string.Empty;

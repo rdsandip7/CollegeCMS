@@ -11,7 +11,7 @@ public class StudentCRUD(DataContext dataContext)
         ["id"] = x => x.StudentId,
         ["name"] = x => x.FirstName,
         ["department"] = x => x.Department!.DepartmentName,
-        ["level"] = x => x.Level!.Year,
+        ["level"] = x => x.LevelId,
         ["admission"] = x => x.PersonalInfo.AdmissionDate,
     };
 

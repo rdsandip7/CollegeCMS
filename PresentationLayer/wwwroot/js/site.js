@@ -22,6 +22,7 @@ document.addEventListener("submit", (event) => {
         document.documentElement.setAttribute("data-bs-theme", next);
         try { localStorage.setItem("theme", next); } catch { /* storage unavailable */ }
         sync();
+        document.dispatchEvent(new Event("themechange"));
     });
     sync();
 })();

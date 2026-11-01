@@ -1,12 +1,20 @@
 using CoreLayer;
 using DataAccessLayer;
 using Microsoft.EntityFrameworkCore;
+using static BusinessLayer.SeedData;
 
 namespace BusinessLayer;
 
-/// <summary>Creates the database on first run and fills it with demo data so the app has something to show.</summary>
+/// <summary>
+/// Creates the database on first run and fills it with a realistic college: four programmes,
+/// eight semesters of curriculum, four intake batches of students and a full staff list.
+/// Generation uses a fixed random seed, so the same data comes out every time.
+/// </summary>
 public class DataSeeder(DataContext dataContext)
 {
+    private readonly Random _random = new(2026);
+    private readonly HashSet<string> _usedEmails = new(StringComparer.OrdinalIgnoreCase);
+
     public async Task SeedAsync(string adminUsername, string adminPassword)
     {
         await dataContext.Database.EnsureCreatedAsync();
@@ -26,85 +34,250 @@ public class DataSeeder(DataContext dataContext)
         if (await dataContext.Departments.AnyAsync())
             return;
 
-        var now = DateTime.Now;
-        var civil = new Department { DepartmentName = "Civil Engineering", DepartmentHead = "Dr. Ramesh Shrestha", Description = "Structures, surveying, transportation and water resources.", EstablishedDate = new DateTime(2000, 7, 15), InsertedDate = now };
-        var computer = new Department { DepartmentName = "Computer Engineering", DepartmentHead = "Dr. Sita Karki", Description = "Software, hardware, networks and embedded systems.", EstablishedDate = new DateTime(2001, 3, 1), InsertedDate = now };
-        var electrical = new Department { DepartmentName = "Electrical Engineering", DepartmentHead = "Er. Bikash Thapa", Description = "Power systems, machines and electronics.", EstablishedDate = new DateTime(2003, 8, 20), InsertedDate = now };
-        var it = new Department { DepartmentName = "BSc. IT", DepartmentHead = "Mr. Anil Maharjan", Description = "Information technology for students from any intermediate stream.", EstablishedDate = new DateTime(2008, 1, 10), InsertedDate = now };
-        dataContext.Departments.AddRange(civil, computer, electrical, it);
-
-        var levels = new[]
+        // Faster bulk insert: one change scan at the end instead of one per Add.
+        dataContext.ChangeTracker.AutoDetectChangesEnabled = false;
+        try
         {
-            new Level { Year = 2026, Semester = "First Semester", Description = "Foundation courses", InsertedDate = now },
-            new Level { Year = 2026, Semester = "Second Semester", Description = "Core fundamentals", InsertedDate = now },
-            new Level { Year = 2027, Semester = "Third Semester", Description = "Intermediate subjects", InsertedDate = now },
-            new Level { Year = 2027, Semester = "Fourth Semester", Description = "Specialisation begins", InsertedDate = now },
-        };
+            SeedCollege();
+            dataContext.ChangeTracker.DetectChanges();
+            await dataContext.SaveChangesAsync();
+        }
+        finally
+        {
+            dataContext.ChangeTracker.AutoDetectChangesEnabled = true;
+        }
+    }
+
+    private void SeedCollege()
+    {
+        var today = DateTime.Today;
+
+        // Semesters (levels). Year = programme year 1-4.
+        var levels = SemesterNames.Select((name, i) => new Level
+        {
+            Year = i / 2 + 1,
+            Semester = name,
+            Description = i % 2 == 0 ? "Odd semester · February to July" : "Even semester · August to January",
+            InsertedDate = today,
+        }).ToArray();
         dataContext.Levels.AddRange(levels);
 
-        var courses = new[]
+        // Departments: four academic programmes plus two that only employ staff.
+        var programmeDepartments = Programmes.ToDictionary(p => p, p => new Department
         {
-            new Course { CourseName = "Engineering Mathematics I", Department = civil, Level = levels[0], Credit = 3, Duration = "16 weeks", Description = "Calculus, matrices and differential equations.", InsertedDate = now },
-            new Course { CourseName = "Structural Analysis", Department = civil, Level = levels[2], Credit = 4, Duration = "16 weeks", Description = "Statically determinate and indeterminate structures.", InsertedDate = now },
-            new Course { CourseName = "Programming in C", Department = computer, Level = levels[0], Credit = 3, Duration = "16 weeks", Description = "Procedural programming fundamentals.", InsertedDate = now },
-            new Course { CourseName = "Data Structures and Algorithms", Department = computer, Level = levels[2], Credit = 4, Duration = "16 weeks", Description = "Lists, trees, graphs, sorting and complexity.", InsertedDate = now },
-            new Course { CourseName = "Database Management Systems", Department = computer, Level = levels[3], Credit = 3, Duration = "16 weeks", Description = "Relational modelling, SQL and transactions.", InsertedDate = now },
-            new Course { CourseName = "Circuit Theory", Department = electrical, Level = levels[1], Credit = 3, Duration = "16 weeks", Description = "Network theorems and AC/DC analysis.", InsertedDate = now },
-            new Course { CourseName = "Web Technology", Department = it, Level = levels[1], Credit = 3, Duration = "16 weeks", Description = "HTML, CSS, JavaScript and server-side basics.", InsertedDate = now },
-            new Course { CourseName = "Object-Oriented Programming", Department = it, Level = levels[2], Credit = 3, Duration = "16 weeks", Description = "Classes, inheritance and design with C#.", InsertedDate = now },
+            DepartmentName = p.Name,
+            Description = p.Description,
+            EstablishedDate = p.Established,
+            InsertedDate = today,
+        });
+        var science = new Department
+        {
+            DepartmentName = "Science & Humanities",
+            Description = "Mathematics, physics, chemistry, drawing and communication courses for every engineering programme.",
+            EstablishedDate = new DateTime(2000, 7, 16),
+            InsertedDate = today,
         };
-        dataContext.Courses.AddRange(courses);
-
-        dataContext.Employees.AddRange(
-            NewEmployee("Hari", null, "Adhikari", "hari.adhikari@mtech.edu.np", civil, "Lecturer", "Male", new DateTime(2015, 4, 1)),
-            NewEmployee("Gita", "Kumari", "Rai", "gita.rai@mtech.edu.np", computer, "Associate Professor", "Female", new DateTime(2012, 9, 15)),
-            NewEmployee("Suresh", null, "Gurung", "suresh.gurung@mtech.edu.np", electrical, "Lab Instructor", "Male", new DateTime(2019, 2, 10)),
-            NewEmployee("Anita", null, "Shakya", "anita.shakya@mtech.edu.np", it, "Lecturer", "Female", new DateTime(2020, 6, 1)),
-            NewEmployee("Prakash", "Raj", "Joshi", "prakash.joshi@mtech.edu.np", computer, "Accountant", "Male", new DateTime(2010, 1, 5)));
-
-        var students = new[]
+        var administration = new Department
         {
-            NewStudent("STU-2026-0001", "Aarav", null, "Sharma", computer, levels[0], "Male", new DateTime(2006, 5, 12)),
-            NewStudent("STU-2026-0002", "Priya", null, "Tamang", it, levels[1], "Female", new DateTime(2005, 11, 3)),
-            NewStudent("STU-2026-0003", "Rohan", "Bahadur", "KC", civil, levels[0], "Male", new DateTime(2006, 2, 21)),
-            NewStudent("STU-2026-0004", "Sneha", null, "Basnet", electrical, levels[1], "Female", new DateTime(2005, 8, 30)),
-            NewStudent("STU-2026-0005", "Nabin", null, "Lama", computer, levels[2], "Male", new DateTime(2004, 12, 9)),
-            NewStudent("STU-2026-0006", "Asmita", null, "Poudel", it, levels[2], "Female", new DateTime(2004, 7, 17)),
+            DepartmentName = "Administration",
+            Description = "Principal's office, registry, examinations, finance, library and IT services.",
+            EstablishedDate = new DateTime(2000, 7, 16),
+            InsertedDate = today,
         };
-        dataContext.Students.AddRange(students);
+        dataContext.Departments.AddRange(programmeDepartments.Values);
+        dataContext.Departments.AddRange(science, administration);
 
-        dataContext.Enrollments.AddRange(
-            NewEnrollment(students[0], courses[2]),
-            NewEnrollment(students[1], courses[6]),
-            NewEnrollment(students[2], courses[0]),
-            NewEnrollment(students[3], courses[5]),
-            NewEnrollment(students[4], courses[3]),
-            NewEnrollment(students[4], courses[4]),
-            NewEnrollment(students[5], courses[7]));
-
-        await dataContext.SaveChangesAsync();
-
-        Employee NewEmployee(string first, string? middle, string last, string email, Department dept, string position, string gender, DateTime hired) => new()
+        // Courses. First-year engineering courses belong to Science & Humanities and are shared.
+        var courses = new Dictionary<(Department, int), List<Course>>();
+        for (var semester = 0; semester < 2; semester++)
+            courses[(science, semester)] = AddCourses(science, levels[semester], CommonEngineeringYear[semester]);
+        foreach (var programme in Programmes)
         {
-            FirstName = first, MiddleName = middle, LastName = last, Email = email, Department = dept, InsertedDate = now,
-            PersonalInfo = new EmployeePersonalInfo { Position = position, Gender = gender, HiredDate = hired, Address = "Kathmandu", Phone = "98" + Random.Shared.Next(10000000, 99999999), InsertedDate = now },
-        };
+            var department = programmeDepartments[programme];
+            for (var semester = 0; semester < 8; semester++)
+            {
+                if (programme.Curriculum[semester].Length > 0)
+                    courses[(department, semester)] = AddCourses(department, levels[semester], programme.Curriculum[semester]);
+            }
+        }
 
-        Student NewStudent(string id, string first, string? middle, string last, Department dept, Level level, string gender, DateTime dob) => new()
+        // Staff.
+        foreach (var department in programmeDepartments.Values)
         {
-            StudentId = id, FirstName = first, MiddleName = middle, LastName = last, Department = dept, Level = level, InsertedDate = now,
+            var staff = AddStaff(department, DepartmentStaffing, today);
+            department.DepartmentHead = "Dr. " + staff[0].FullName;
+        }
+        science.DepartmentHead = "Dr. " + AddStaff(science, ScienceStaffing, today)[0].FullName;
+        administration.DepartmentHead = "Prof. Dr. " + AddStaff(administration, AdministrationStaffing, today)[0].FullName;
+
+        // Students: four February intakes, the oldest close to graduating.
+        var currentIntake = today.Month >= 2 ? today.Year : today.Year - 1;
+        var evenSemester = today.Month is >= 8 or 1;
+        var semesterStart = evenSemester ? new DateTime(currentIntake, 8, 15) : new DateTime(currentIntake, 2, 15);
+        foreach (var programme in Programmes)
+        {
+            var department = programmeDepartments[programme];
+            for (var yearsIn = 3; yearsIn >= 0; yearsIn--)
+            {
+                var intake = currentIntake - yearsIn;
+                var semester = yearsIn * 2 + (evenSemester ? 1 : 0);
+                var courseOwner = semester < 2 && programme != InformationTechnology ? science : department;
+                var currentCourses = courses[(courseOwner, semester)];
+
+                // Each year a few students drop out or transfer.
+                var retention = 1 - yearsIn * 0.035 - _random.NextDouble() * 0.03;
+                var batchSize = (int)Math.Round(programme.IntakeSeats * retention);
+                for (var seat = 1; seat <= batchSize; seat++)
+                    AddStudent(programme, department, levels[semester], intake, semesterStart, currentCourses);
+            }
+        }
+    }
+
+    private List<Course> AddCourses(Department department, Level level, string[] names)
+    {
+        var list = names.Select(name =>
+        {
+            var (credit, kind) = name switch
+            {
+                _ when name.Contains("Project") || name == "Internship" => (name.StartsWith("Major") || name == "Internship" ? 4 : 2, "Supervised project work with milestone reviews and a final defence."),
+                _ when name.Contains("Drawing") || name.Contains("Workshop") || name.Contains("Camp") => (2, "Practical course with studio or field sessions every week."),
+                _ when name.Contains("Mathematics") || name.Contains("Physics") || name.Contains("Chemistry") || name.Contains("Theory of Structures") => (4, "Core theory course: four lectures and one tutorial per week."),
+                _ when name.StartsWith("Elective") => (3, "Elective chosen by the department board for this batch."),
+                _ => (3, "Core course: three lectures and a two-hour lab or tutorial per week."),
+            };
+            return new Course
+            {
+                CourseName = name,
+                Department = department,
+                Level = level,
+                Credit = credit,
+                Duration = name.Contains("Camp") ? "2 weeks (field)" : name == "Internship" ? "10 weeks" : "15 weeks",
+                Description = kind,
+                InsertedDate = DateTime.Today,
+            };
+        }).ToList();
+        dataContext.Courses.AddRange(list);
+        return list;
+    }
+
+    private List<Employee> AddStaff(Department department, (string Position, int Count)[] staffing, DateTime today)
+    {
+        var staff = new List<Employee>();
+        var seniority = 0;
+        foreach (var (position, count) in staffing)
+        {
+            for (var i = 0; i < count; i++, seniority++)
+            {
+                var female = _random.NextDouble() < 0.32;
+                var (first, middle, last) = RandomName(female);
+
+                // Senior posts were hired earlier; juniors joined recently.
+                var earliest = Math.Max(department.EstablishedDate!.Value.Year, 2001 + seniority);
+                var hired = RandomDate(new DateTime(Math.Min(earliest, today.Year - 1), 1, 1), today.AddMonths(-2));
+                DateTime? resigned = null;
+                if (seniority > 2 && _random.NextDouble() < 0.07)
+                    resigned = RandomDate(hired.AddMonths(8), today.AddDays(-14));
+
+                var employee = new Employee
+                {
+                    FirstName = first,
+                    MiddleName = middle,
+                    LastName = last,
+                    Email = UniqueEmail(first, last, "mtech.edu.np"),
+                    Department = department,
+                    InsertedDate = hired,
+                    PersonalInfo = new EmployeePersonalInfo
+                    {
+                        Gender = female ? "Female" : "Male",
+                        Position = position,
+                        Address = Pick(Localities[..14]),
+                        Phone = MobileNumber(),
+                        HiredDate = hired,
+                        ResignationDate = resigned,
+                        InsertedDate = hired,
+                    },
+                };
+                staff.Add(employee);
+            }
+        }
+        dataContext.Employees.AddRange(staff);
+        return staff;
+    }
+
+    private readonly Dictionary<int, int> _studentSequence = [];
+
+    private void AddStudent(Programme programme, Department department, Level level, int intake, DateTime semesterStart, List<Course> currentCourses)
+    {
+        var sequence = _studentSequence[intake] = _studentSequence.GetValueOrDefault(intake) + 1;
+        var studentId = $"STU-{intake}-{sequence:D4}";
+
+        var female = _random.NextDouble() < programme.FemaleShare;
+        var (first, middle, last) = RandomName(female);
+        var admitted = new DateTime(intake, 2, 8).AddDays(_random.Next(0, 12));
+        var born = new DateTime(intake - 19, 1, 1).AddDays(_random.Next(0, 730));
+        var guardianIsMother = _random.NextDouble() < 0.18;
+
+        var student = new Student
+        {
+            StudentId = studentId,
+            FirstName = first,
+            MiddleName = middle,
+            LastName = last,
+            Department = department,
+            Level = level,
+            InsertedDate = admitted,
             PersonalInfo = new StudentPersonalInfo
             {
-                StudentId = id, Gender = gender, DateOfBirth = dob, AdmissionDate = new DateTime(2026, 2, 1),
-                Email = $"{first.ToLower()}.{last.ToLower()}@student.mtech.edu.np", Address = "Lalitpur",
-                ContactNumber = "98" + Random.Shared.Next(10000000, 99999999), GuardianName = $"Mr. {last}", GuardianRelationship = "Father",
-                GuardianContactNumber = "98" + Random.Shared.Next(10000000, 99999999), InsertedDate = now,
+                StudentId = studentId,
+                Gender = female ? "Female" : "Male",
+                DateOfBirth = born,
+                CitizenshipNumber = $"{_random.Next(1, 78):D2}-{_random.Next(1, 4):D2}-{born.Year % 100 + 56:D2}-{_random.Next(10000, 99999)}",
+                Email = UniqueEmail(first, last, "student.mtech.edu.np"),
+                Address = Pick(Localities),
+                ContactNumber = MobileNumber(),
+                GuardianName = guardianIsMother
+                    ? $"{Pick(FemaleNames)} {last}"
+                    : $"{Pick(MaleNames)} {Pick(MaleMiddleNames)} {last}",
+                GuardianRelationship = guardianIsMother ? "Mother" : "Father",
+                GuardianContactNumber = MobileNumber(),
+                AdmissionDate = admitted,
+                InsertedDate = admitted,
             },
         };
+        dataContext.Students.Add(student);
 
-        Enrollment NewEnrollment(Student student, Course course) => new()
+        foreach (var course in currentCourses)
         {
-            Student = student, Course = course, EnrolledDate = new DateTime(2026, 2, 15), InsertedDate = now,
-        };
+            dataContext.Enrollments.Add(new Enrollment
+            {
+                Student = student,
+                Course = course,
+                EnrolledDate = semesterStart.AddDays(_random.Next(-6, 3)),
+                InsertedDate = semesterStart,
+            });
+        }
     }
+
+    private (string First, string? Middle, string Last) RandomName(bool female)
+    {
+        var first = Pick(female ? FemaleNames : MaleNames);
+        string? middle = _random.NextDouble() < 0.22 ? Pick(female ? FemaleMiddleNames : MaleMiddleNames) : null;
+        return (first, middle, Pick(Surnames));
+    }
+
+    private string UniqueEmail(string first, string last, string domain)
+    {
+        var local = $"{first}.{last}".ToLowerInvariant();
+        var email = $"{local}@{domain}";
+        for (var n = 2; !_usedEmails.Add(email); n++)
+            email = $"{local}{n}@{domain}";
+        return email;
+    }
+
+    private string MobileNumber() => $"98{_random.Next(0, 6)}{_random.Next(1000000, 9999999)}";
+
+    private DateTime RandomDate(DateTime from, DateTime to) =>
+        to <= from ? from : from.AddDays(_random.Next(0, (int)(to - from).TotalDays));
+
+    private T Pick<T>(T[] items) => items[_random.Next(items.Length)];
 }
